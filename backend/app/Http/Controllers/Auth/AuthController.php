@@ -21,7 +21,11 @@ class AuthController extends Controller
                     'confirmed',
                     'min:8',
                     'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'
-                ]
+                ],
+                'salon_name' => 'nullable|string|max:100',
+                'address' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:100',
+                'phone' => 'nullable|string|max:20'
             ], [
                 'name.required' => 'Ime i prezime je obavezno',
                 'name.max' => 'Ime i prezime ne može biti duže od 55 karaktera',
@@ -32,13 +36,22 @@ class AuthController extends Controller
                 'password.required' => 'Lozinka je obavezna',
                 'password.confirmed' => 'Lozinke se ne poklapaju',
                 'password.min' => 'Lozinka mora imati najmanje 8 karaktera',
-                'password.regex' => 'Lozinka mora sadržati najmanje jedno veliko slovo, jedno malo slovo, jedan broj i jedan specijalni karakter'
+                'password.regex' => 'Lozinka mora sadržati najmanje jedno veliko slovo, jedno malo slovo, jedan broj i jedan specijalni karakter',
+                'salon_name.max' => 'Ime salona ne može biti duže od 100 karaktera',
+                'address.max' => 'Adresa ne može biti duža od 255 karaktera',
+                'city.max' => 'Grad ne može biti duži od 100 karaktera',
+                'phone.max' => 'Broj telefona ne može biti duži od 20 karaktera'
             ]);
 
             $user = User::create([
                 'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
                 'password' => Hash::make($validatedData['password']),
+                'salon_name' => $validatedData['salon_name'] ?? null,
+                'address' => $validatedData['address'] ?? null,
+                'city' => $validatedData['city'] ?? null,
+                'phone' => $validatedData['phone'] ?? null,
+                'is_active' => true,
                 'remember_token' => Str::random(10)
             ]);
 
@@ -70,32 +83,23 @@ class AuthController extends Controller
             $validatedData = $request->validate([
                 'email' => 'required|email',
                 'password' => 'required'
-            ], [
-                'email.required' => 'Email adresa je obavezna',
-                'email.email' => 'Uneta email adresa nije validna',
-                'password.required' => 'Lozinka je obavezna'
             ]);
 
             $user = User::where('email', $validatedData['email'])->first();
 
-            if (!$user) {
+            if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json([
-                    'message' => 'Korisnik sa ovom email adresom ne postoji'
+                    'message' => 'Pogrešni podaci za prijavu'
                 ], 401);
             }
 
-            if (!Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'message' => 'Pogrešna lozinka'
-                ], 401);
-            }
-
-            $accessToken = $user->createToken('authToken')->plainTextToken;
+            $token = $user->createToken('authToken')->plainTextToken;
 
             return response()->json([
                 'user' => $user,
-                'access_token' => $accessToken
+                'access_token' => $token
             ], 200);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Došlo je do greške prilikom prijave',

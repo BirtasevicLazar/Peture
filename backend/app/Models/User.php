@@ -22,6 +22,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'salon_name',
+        'address',
+        'city',
+        'phone',
+        'is_active',
         'email_verified_at',
         'remember_token'
     ];
