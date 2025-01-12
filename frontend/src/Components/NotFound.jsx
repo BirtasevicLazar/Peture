@@ -4,9 +4,9 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-indigo-600">404</h1>
-        <p className="text-xl mt-4">Stranica nije pronađena</p>
-        <Link to="/" className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+        <h1 className="text-6xl font-bold text-green-600">404</h1>
+        <p className="text-xl mt-4 text-gray-700">Stranica nije pronađena</p>
+        <Link to="/" className="mt-4 inline-block bg-gradient-to-r from-green-600 to-emerald-500 text-white px-6 py-3 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-300">
           Nazad na početnu
         </Link>
       </div>

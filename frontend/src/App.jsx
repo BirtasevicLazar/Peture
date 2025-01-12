@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
+import ScrollToTop from './Components/ScrollToTop';
 
 // Eager loading za kritične komponente
 import Loading from './Components/Loading';
@@ -8,14 +9,15 @@ import ProtectedRoute from './Components/ProtectedRoute';
 // Lazy loading za ostale komponente
 const MainLayout = lazy(() => import('./Layouts/MainLayout'));
 const Home = lazy(() => import('./Components/Home'));
-const Login = lazy(() => import('./Components/Login'));
-const Register = lazy(() => import('./Components/Register'));
+const Login = lazy(() => import('./Components/Authorization/Login'));
+const Register = lazy(() => import('./Components/Authorization/Register'));
 const NotFound = lazy(() => import('./Components/NotFound'));
-const Dashboard = lazy(() => import('./Components/Dashboard'));
+const Dashboard = lazy(() => import('./Components/Dashboard/Dashboard'));
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Suspense fallback={<Loading />}>
         <Routes>
           {/* Dashboard route */}
