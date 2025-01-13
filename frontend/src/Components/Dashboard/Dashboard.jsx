@@ -5,6 +5,7 @@ import Salon from './Salon';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
+  const [selectedWorker, setSelectedWorker] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
@@ -44,6 +45,12 @@ const Dashboard = () => {
     { id: 'settings', label: 'Podešavanja', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ];
 
+  const workerSubmenuItems = [
+    { id: 'schedule', label: 'Radno vreme', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 'services', label: 'Usluge', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+    { id: 'appointments', label: 'Termini', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
@@ -72,16 +79,6 @@ const Dashboard = () => {
             {/* Right side */}
             <div className="flex items-center">
               <div className="relative">
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100"
-                >
-                  <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center">
-                    <span className="text-white font-medium">A</span>
-                  </div>
-                  <span className="hidden md:inline-block text-sm font-medium text-gray-700">Admin</span>
-                </button>
-
                 {isDropdownOpen && (
                   <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <div className="py-1">
@@ -115,17 +112,18 @@ const Dashboard = () => {
                 key={item.id}
                 onClick={() => {
                   setActiveComponent(item.id);
+                  setSelectedWorker(null);
                   setIsMobileMenuOpen(false);
                 }}
                 className={`${
-                  activeComponent === item.id
+                  activeComponent === item.id && !selectedWorker
                     ? 'bg-green-50 text-green-600'
                     : 'text-gray-600 hover:bg-gray-50'
                 } group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md`}
               >
                 <svg
                   className={`${
-                    activeComponent === item.id ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
+                    activeComponent === item.id && !selectedWorker ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
                   } mr-3 h-5 w-5`}
                   fill="none"
                   viewBox="0 0 24 24"
@@ -136,6 +134,34 @@ const Dashboard = () => {
                 {item.label}
               </button>
             ))}
+
+            {/* Worker Submenu */}
+            {selectedWorker && (
+              <div className="ml-4 mt-2 border-l-2 border-green-100">
+                <div className="py-2 px-2 text-sm font-medium text-gray-500">
+                  {selectedWorker.ime} {selectedWorker.prezime}
+                </div>
+                {workerSubmenuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      // Handle submenu item click
+                    }}
+                    className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
+                  >
+                    <svg
+                      className="text-gray-400 group-hover:text-gray-500 mr-3 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                    </svg>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </nav>
 
           {/* Logout button at bottom */}
@@ -161,8 +187,9 @@ const Dashboard = () => {
         <main className="flex-1 overflow-auto bg-gray-50 p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {activeComponent === 'salon' && <Salon />}
-            {activeComponent === 'workers' && <Workers />}
-            {/* Add other components here */}
+            {activeComponent === 'workers' && (
+              <Workers onWorkerSelect={(worker) => setSelectedWorker(worker)} />
+            )}
           </div>
         </main>
       </div>

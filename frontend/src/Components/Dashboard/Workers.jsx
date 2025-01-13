@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Workers = () => {
+const Workers = ({ onWorkerSelect }) => {
   const [workers, setWorkers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState(null);
@@ -113,7 +113,11 @@ const Workers = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {workers.map((worker) => (
-              <tr key={worker.id}>
+              <tr 
+                key={worker.id} 
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => onWorkerSelect(worker)}
+              >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{worker.ime} {worker.prezime}</div>
                 </td>
@@ -148,7 +152,7 @@ const Workers = () => {
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-semibold mb-4">
-              {selectedWorker ? 'Izmeni radnika' : 'Dodaj radnika'}
+              {selectedWorker ? 'Izmeni podatke o radniku' : 'Dodaj radnika'}
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
