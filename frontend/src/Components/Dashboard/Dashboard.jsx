@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Workers from './Workers';
 import Salon from './Salon';
+import Services from './Services';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,10 +48,60 @@ const Dashboard = () => {
   ];
 
   const workerSubmenuItems = [
-    { id: 'schedule', label: 'Radno vreme', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'services', label: 'Usluge', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-    { id: 'appointments', label: 'Termini', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    { id: 'schedule', label: 'Radno vreme', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', component: null },
+    { id: 'services', label: 'Usluge', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', component: Services },
+    { id: 'appointments', label: 'Termini', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', component: null },
   ];
+
+  const handleSubmenuClick = (itemId) => {
+    setActiveSubmenu(itemId);
+    setActiveComponent('worker-details'); // Add this new state to handle worker details view
+  };
+
+  const renderMainContent = () => {
+    if (activeComponent === 'salon') {
+      return <Salon />;
+    }
+
+    if (activeComponent === 'workers') {
+      return <Workers onWorkerSelect={(worker) => {
+        setSelectedWorker(worker);
+        setActiveSubmenu(null);
+        setActiveComponent('worker-details');
+      }} />;
+    }
+
+    if (activeComponent === 'worker-details') {
+      if (activeSubmenu === 'services') {
+        return (
+          <div>
+            <div className="mb-6 flex items-center">
+              <button
+                onClick={() => {
+                  setActiveComponent('workers');
+                  setSelectedWorker(null);
+                  setActiveSubmenu(null);
+                }}
+                className="mr-4 text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Usluge - {selectedWorker?.ime} {selectedWorker?.prezime}
+              </h1>
+            </div>
+            <Services workerId={selectedWorker?.id} />
+          </div>
+        );
+      }
+      // Add other submenu components here (schedule, appointments)
+      return null;
+    }
+
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -144,9 +196,7 @@ const Dashboard = () => {
                 {workerSubmenuItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      // Handle submenu item click
-                    }}
+                    onClick={() => handleSubmenuClick(item.id)}
                     className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
                   >
                     <svg
@@ -186,10 +236,7 @@ const Dashboard = () => {
         {/* Main Content */}
         <main className="flex-1 overflow-auto bg-gray-50 p-4 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            {activeComponent === 'salon' && <Salon />}
-            {activeComponent === 'workers' && (
-              <Workers onWorkerSelect={(worker) => setSelectedWorker(worker)} />
-            )}
+            {renderMainContent()}
           </div>
         </main>
       </div>

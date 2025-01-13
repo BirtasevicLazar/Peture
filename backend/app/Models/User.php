@@ -60,4 +60,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Worker::class);
     }
+
+    /**
+     * Get the services for the salon.
+     */
+    public function services()
+    {
+        return $this->hasMany(Service::class);
+    }
 }
