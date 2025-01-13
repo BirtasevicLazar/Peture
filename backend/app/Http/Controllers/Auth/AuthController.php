@@ -107,4 +107,47 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function update(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            $validatedData = $request->validate([
+                'salon_name' => 'nullable|string|max:100',
+                'address' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:100',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'required|email|unique:users,email,' . $user->id,
+            ], [
+                'salon_name.max' => 'Ime salona ne može biti duže od 100 karaktera',
+                'address.max' => 'Adresa ne može biti duža od 255 karaktera',
+                'city.max' => 'Grad ne može biti duži od 100 karaktera',
+                'phone.max' => 'Broj telefona ne može biti duži od 20 karaktera',
+                'email.required' => 'Email adresa je obavezna',
+                'email.email' => 'Uneta email adresa nije validna',
+                'email.unique' => 'Ova email adresa je već registrovana',
+            ]);
+
+            $user->update($validatedData);
+
+            return response()->json([
+                'message' => 'Podaci uspešno ažurirani',
+                'user' => $user
+            ]);
+
+        } catch (\Exception $e) {
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return response()->json([
+                    'message' => 'Greška u validaciji',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
+            return response()->json([
+                'message' => 'Došlo je do greške prilikom ažuriranja podataka',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

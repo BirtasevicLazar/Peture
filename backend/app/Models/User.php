@@ -27,7 +27,6 @@ class User extends Authenticatable
         'city',
         'phone',
         'is_active',
-        'email_verified_at',
         'remember_token'
     ];
 
@@ -52,5 +51,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the workers for the salon.
+     */
+    public function workers()
+    {
+        return $this->hasMany(Worker::class);
     }
 }
