@@ -15,7 +15,7 @@ const Workers = ({ onWorkerSelect }) => {
 
   const fetchWorkers = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/workers', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setWorkers(response.data);
@@ -57,11 +57,11 @@ const Workers = ({ onWorkerSelect }) => {
     e.preventDefault();
     try {
       if (selectedWorker) {
-        await axios.put(`http://localhost:8000/api/workers/${selectedWorker.id}`, formData, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/workers/${selectedWorker.id}`, formData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       } else {
-        await axios.post('http://localhost:8000/api/workers', formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/workers`, formData, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       }
@@ -75,10 +75,11 @@ const Workers = ({ onWorkerSelect }) => {
     }
   };
 
-  const handleDelete = async (workerId) => {
+  const handleDelete = async (workerId, e) => {
+    e.stopPropagation(); // Prevent row click
     if (window.confirm('Da li ste sigurni da želite da obrišete ovog radnika?')) {
       try {
-        await axios.delete(`http://localhost:8000/api/workers/${workerId}`, {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/workers/${workerId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         fetchWorkers();
@@ -115,27 +116,30 @@ const Workers = ({ onWorkerSelect }) => {
             {workers.map((worker) => (
               <tr 
                 key={worker.id} 
-                className="cursor-pointer hover:bg-gray-50"
                 onClick={() => onWorkerSelect(worker)}
+                className="hover:bg-gray-50"
               >
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
                   <div className="text-sm font-medium text-gray-900">{worker.ime} {worker.prezime}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
                   <div className="text-sm text-gray-500">{worker.email}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
                   <div className="text-sm text-gray-500">{worker.telefon}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
-                    onClick={() => handleOpenModal(worker)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenModal(worker);
+                    }}
                     className="text-green-600 hover:text-green-900 mr-4"
                   >
                     Izmeni
                   </button>
                   <button
-                    onClick={() => handleDelete(worker.id)}
+                    onClick={(e) => handleDelete(worker.id, e)}
                     className="text-red-600 hover:text-red-900"
                   >
                     Obriši

@@ -19,7 +19,7 @@ const Salon = () => {
 
   const fetchSalonData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/user', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setSalonData(response.data);
@@ -40,7 +40,7 @@ const Salon = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put('http://localhost:8000/api/user/update', editData, {
+      const response = await axios.put(`${import.meta.env.VITE_API_URL}/user/update`, editData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setSalonData(response.data.user);
