@@ -31,4 +31,9 @@ class Worker extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function schedules()
+    {
+        return $this->hasMany(WorkSchedule::class);
+    }
 }

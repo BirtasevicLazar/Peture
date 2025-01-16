@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Workers from './Workers';
 import Salon from './Salon';
 import Services from './Services';
+import WorkerSchedule from './WorkerSchedule';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
@@ -93,6 +94,29 @@ const Dashboard = () => {
               </h1>
             </div>
             <Services workerId={selectedWorker?.id} />
+          </div>
+        );
+      } else if (activeSubmenu === 'schedule') {
+        return (
+          <div>
+            <div className="mb-6 flex items-center">
+              <button
+                onClick={() => {
+                  setActiveComponent('workers');
+                  setSelectedWorker(null);
+                  setActiveSubmenu(null);
+                }}
+                className="mr-4 text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Radno vreme - {selectedWorker?.ime} {selectedWorker?.prezime}
+              </h1>
+            </div>
+            <WorkerSchedule workerId={selectedWorker?.id} />
           </div>
         );
       }

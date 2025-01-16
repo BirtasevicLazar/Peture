@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\WorkScheduleController; // Add this line
 
 // Auth routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,4 +29,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{service}', [ServiceController::class, 'update']);
     Route::delete('/services/{service}', [ServiceController::class, 'destroy']);
+
+    // Work Schedule routes
+    Route::get('/work-schedules', [WorkScheduleController::class, 'index']);
+    Route::post('/work-schedules', [WorkScheduleController::class, 'store']);
+    Route::put('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'update']);
+    Route::delete('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'destroy']);
 });
