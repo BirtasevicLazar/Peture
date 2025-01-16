@@ -65,28 +65,30 @@ const Salon = () => {
         </button>
       </div>
 
-      {/* Salon Info Card */}
-      <div className="bg-white shadow-sm rounded-lg p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-500">Naziv salona</label>
-            <p className="mt-1 text-lg text-gray-900">{salonData.salon_name || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">Email</label>
-            <p className="mt-1 text-lg text-gray-900">{salonData.email || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">Adresa</label>
-            <p className="mt-1 text-lg text-gray-900">{salonData.address || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">Grad</label>
-            <p className="mt-1 text-lg text-gray-900">{salonData.city || '-'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-500">Telefon</label>
-            <p className="mt-1 text-lg text-gray-900">{salonData.phone || '-'}</p>
+      {/* Salon Info Card - Mobile Optimized */}
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div className="p-4 md:p-6 space-y-4">
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Naziv salona</label>
+              <p className="mt-1 text-base font-medium text-gray-900">{salonData.salon_name || '-'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</label>
+              <p className="mt-1 text-base text-gray-900">{salonData.email || '-'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Adresa</label>
+              <p className="mt-1 text-base text-gray-900">{salonData.address || '-'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Grad</label>
+              <p className="mt-1 text-base text-gray-900">{salonData.city || '-'}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</label>
+              <p className="mt-1 text-base text-gray-900">{salonData.phone || '-'}</p>
+            </div>
           </div>
         </div>
       </div>

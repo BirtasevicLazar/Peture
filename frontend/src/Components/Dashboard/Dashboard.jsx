@@ -104,31 +104,33 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-14">
+    <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
       <nav className="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-40">
         <div className="px-4">
           <div className="flex justify-between h-14">
             <div className="flex items-center">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {isMobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
+              {selectedWorker ? (
+                <button
+                  onClick={() => {
+                    setActiveComponent('workers');
+                    setSelectedWorker(null);
+                    setActiveSubmenu(null);
+                  }}
+                  className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              ) : null}
               <div className="flex-shrink-0 flex items-center ml-2">
                 <span className="text-xl font-bold text-green-600">Peture</span>
               </div>
             </div>
             
-            {selectedWorker && activeComponent === 'worker-details' && (
-              <div className="lg:hidden flex items-center">
+            {selectedWorker && (
+              <div className="flex items-center">
                 <span className="text-sm font-medium text-gray-700">
                   {selectedWorker.ime} {selectedWorker.prezime}
                 </span>
@@ -138,15 +140,10 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar */}
-        <div className={`
-          lg:block w-64 bg-white border-r border-gray-200
-          fixed lg:static inset-y-0 left-0 transform
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 transition-transform duration-200 ease-in-out z-30
-          flex flex-col justify-between h-full pt-14 lg:pt-0
-        `}>
+      <div className="flex h-[calc(100vh-4rem)] pt-14">
+        {/* Desktop Sidebar - hidden on mobile */}
+        <div className="hidden lg:block w-64 bg-white border-r border-gray-200">
+          {/* Existing sidebar content */}
           <nav className="mt-5 px-2 space-y-1">
             {menuItems.map((item) => (
               <button
@@ -202,32 +199,72 @@ const Dashboard = () => {
               </div>
             )}
           </nav>
-
-          {/* Logout button at bottom */}
-          <div className="p-4 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
-            >
-              <svg
-                className="mr-3 h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Odjavi se
-            </button>
-          </div>
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-4 lg:p-8">
+        <main className="flex-1 overflow-auto bg-gray-50 p-4 lg:p-8 pb-20 lg:pb-8">
           <div className="max-w-7xl mx-auto">
             {renderMainContent()}
           </div>
         </main>
+
+        {/* Mobile Bottom Navigation - hidden on desktop */}
+        {!selectedWorker ? (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+            <div className="flex justify-around">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveComponent(item.id);
+                    setSelectedWorker(null);
+                  }}
+                  className={`flex flex-col items-center py-2 px-4 ${
+                    activeComponent === item.id
+                      ? 'text-green-600'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                  </svg>
+                  <span className="text-xs mt-1">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+            <div className="flex justify-around">
+              {workerSubmenuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSubmenuClick(item.id)}
+                  className={`flex flex-col items-center py-2 px-4 ${
+                    activeSubmenu === item.id
+                      ? 'text-green-600'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                  </svg>
+                  <span className="text-xs mt-1">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
