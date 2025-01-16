@@ -104,16 +104,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pt-14">
       {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            {/* Left side */}
-            <div className="flex">
+      <nav className="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-40">
+        <div className="px-4">
+          <div className="flex justify-between h-14">
+            <div className="flex items-center">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   {isMobileMenuOpen ? (
@@ -123,28 +122,18 @@ const Dashboard = () => {
                   )}
                 </svg>
               </button>
-              <div className="flex-shrink-0 flex items-center">
+              <div className="flex-shrink-0 flex items-center ml-2">
                 <span className="text-xl font-bold text-green-600">Peture</span>
               </div>
             </div>
-
-            {/* Right side */}
-            <div className="flex items-center">
-              <div className="relative">
-                {isDropdownOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                    <div className="py-1">
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Odjavi se
-                      </button>
-                    </div>
-                  </div>
-                )}
+            
+            {selectedWorker && activeComponent === 'worker-details' && (
+              <div className="lg:hidden flex items-center">
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedWorker.ime} {selectedWorker.prezime}
+                </span>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </nav>
@@ -156,7 +145,7 @@ const Dashboard = () => {
           fixed lg:static inset-y-0 left-0 transform
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 transition-transform duration-200 ease-in-out z-30
-          flex flex-col justify-between
+          flex flex-col justify-between h-full pt-14 lg:pt-0
         `}>
           <nav className="mt-5 px-2 space-y-1">
             {menuItems.map((item) => (
