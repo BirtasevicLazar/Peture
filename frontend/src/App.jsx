@@ -1,17 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
-import ScrollToTop from './Components/ScrollToTop';
+import ScrollToTop from './Components/Common/ScrollToTop';
 
 // Eager loading za kritične komponente
-import Loading from './Components/Loading';
-import ProtectedRoute from './Components/ProtectedRoute';
+import Loading from './Components/Common/Loading';
+import ProtectedRoute from './Components/Common/ProtectedRoute';
 
 // Lazy loading za ostale komponente
 const MainLayout = lazy(() => import('./Layouts/MainLayout'));
-const Home = lazy(() => import('./Components/Home'));
+const Home = lazy(() => import('./Components/Home/Home'));
 const Login = lazy(() => import('./Components/Authorization/Login'));
 const Register = lazy(() => import('./Components/Authorization/Register'));
-const NotFound = lazy(() => import('./Components/NotFound'));
+const NotFound = lazy(() => import('./Components/Common/NotFound'));
 const Dashboard = lazy(() => import('./Components/Dashboard/Dashboard'));
 const BookingPage = lazy(() => import('./Components/Booking/BookingPage'));
 
