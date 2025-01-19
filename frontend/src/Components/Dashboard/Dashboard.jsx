@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,10 @@ const Dashboard = () => {
   }, []);
 
   const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
     window.onpopstate = null; // Remove the navigation prevention
     localStorage.removeItem('token');
     navigate('/login', { replace: true });
@@ -153,80 +158,106 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {selectedWorker && (
-              <div className="flex items-center">
+            <div className="flex items-center space-x-4">
+              {selectedWorker && (
                 <span className="text-sm font-medium text-gray-700">
                   {selectedWorker.ime} {selectedWorker.prezime}
                 </span>
-              </div>
-            )}
+              )}
+              <button
+                onClick={handleLogout}
+                className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
-      <div className="flex h-[calc(100vh-4rem)] pt-14">
+      <div className="flex h-screen pt-14">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden lg:block w-64 bg-white border-r border-gray-200">
-          {/* Existing sidebar content */}
-          <nav className="mt-5 px-2 space-y-1">
-            {menuItems.map((item) => (
+        <div className="hidden lg:block w-64 bg-white border-r border-gray-200 overflow-y-auto">
+          <div className="flex flex-col h-full justify-between">
+            <nav className="mt-5 px-2 space-y-1">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setActiveComponent(item.id);
+                    setSelectedWorker(null);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`${
+                    activeComponent === item.id && !selectedWorker
+                      ? 'bg-green-50 text-green-600'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  } group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                >
+                  <svg
+                    className={`${
+                      activeComponent === item.id && !selectedWorker ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
+                    } mr-3 h-5 w-5`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                  </svg>
+                  {item.label}
+                </button>
+              ))}
+
+              {/* Worker Submenu */}
+              {selectedWorker && (
+                <div className="ml-4 mt-2 border-l-2 border-green-100">
+                  <div className="py-2 px-2 text-sm font-medium text-gray-500">
+                    {selectedWorker.ime} {selectedWorker.prezime}
+                  </div>
+                  {workerSubmenuItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSubmenuClick(item.id)}
+                      className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
+                    >
+                      <svg
+                        className="text-gray-400 group-hover:text-gray-500 mr-3 h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                      </svg>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </nav>
+            
+            <div className="p-4 border-t border-gray-200 mt-auto">
               <button
-                key={item.id}
-                onClick={() => {
-                  setActiveComponent(item.id);
-                  setSelectedWorker(null);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`${
-                  activeComponent === item.id && !selectedWorker
-                    ? 'bg-green-50 text-green-600'
-                    : 'text-gray-600 hover:bg-gray-50'
-                } group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                onClick={handleLogout}
+                className="w-full flex items-center px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
               >
                 <svg
-                  className={`${
-                    activeComponent === item.id && !selectedWorker ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
-                  } mr-3 h-5 w-5`}
+                  className="mr-3 h-5 w-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                {item.label}
+                Odjavi se
               </button>
-            ))}
-
-            {/* Worker Submenu */}
-            {selectedWorker && (
-              <div className="ml-4 mt-2 border-l-2 border-green-100">
-                <div className="py-2 px-2 text-sm font-medium text-gray-500">
-                  {selectedWorker.ime} {selectedWorker.prezime}
-                </div>
-                {workerSubmenuItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSubmenuClick(item.id)}
-                    className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
-                  >
-                    <svg
-                      className="text-gray-400 group-hover:text-gray-500 mr-3 h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-                    </svg>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </nav>
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-4 lg:p-8 pb-20 lg:pb-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-8 pb-20 lg:pb-8">
           <div className="max-w-7xl mx-auto">
             {renderMainContent()}
           </div>
@@ -290,6 +321,63 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+              <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg 
+                      className="h-6 w-6 text-red-600" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      strokeWidth="1.5" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                    <h3 className="text-lg font-semibold leading-6 text-gray-900">
+                      Potvrda odjave
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500">
+                        Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                  type="button"
+                  onClick={confirmLogout}
+                  className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                >
+                  Odjavi se
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(false)}
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                >
+                  Otkaži
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

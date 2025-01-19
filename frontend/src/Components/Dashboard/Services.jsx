@@ -9,7 +9,7 @@ const Services = ({ workerId }) => {
     naziv: '',
     opis: '',
     cena: '',
-    trajanje: ''
+    trajanje: '30'
   });
   const [errors, setErrors] = useState({});
 
@@ -39,7 +39,7 @@ const Services = ({ workerId }) => {
         naziv: '',
         opis: '',
         cena: '',
-        trajanje: ''
+        trajanje: '30'
     });
     setErrors({});
     setSelectedService(null);
@@ -251,14 +251,18 @@ const Services = ({ workerId }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Trajanje (min)</label>
-                  <input
-                    type="number"
+                  <select
                     name="trajanje"
                     value={formData.trajanje}
                     onChange={handleInputChange}
-                    min="1"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                  />
+                  >
+                    {[15, 30, 45, 60, 90, 120, 150, 180].map((minutes) => (
+                      <option key={minutes} value={minutes}>
+                        {minutes} minuta
+                      </option>
+                    ))}
+                  </select>
                   {errors.trajanje && <p className="text-red-500 text-xs mt-1">{errors.trajanje}</p>}
                 </div>
               </div>

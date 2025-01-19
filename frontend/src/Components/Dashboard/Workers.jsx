@@ -112,6 +112,7 @@ const Workers = ({ onWorkerSelect }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ime i prezime</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vremenski slot</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
               </tr>
             </thead>
@@ -130,6 +131,9 @@ const Workers = ({ onWorkerSelect }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
                     <div className="text-sm text-gray-500">{worker.telefon}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
+                    <div className="text-sm text-gray-500">{worker.time_slot} min</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -170,6 +174,9 @@ const Workers = ({ onWorkerSelect }) => {
                     </div>
                     <div className="text-sm text-gray-500">{worker.email}</div>
                     <div className="text-sm text-gray-500">{worker.telefon}</div>
+                    <div className="text-sm text-gray-500">
+                      Vremenski slot: {worker.time_slot} min
+                    </div>
                   </div>
                   <div className="flex space-x-2">
                     <button
