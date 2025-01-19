@@ -28,14 +28,8 @@ class WorkerController extends Controller
                 'ime' => 'required|string|max:100',
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email',
-                'telefon' => 'required|string|max:20'
-            ], [
-                'ime.required' => 'Ime je obavezno',
-                'prezime.required' => 'Prezime je obavezno',
-                'email.required' => 'Email je obavezan',
-                'email.email' => 'Email nije validan',
-                'email.unique' => 'Email je već zauzet',
-                'telefon.required' => 'Telefon je obavezan'
+                'telefon' => 'required|string|max:20',
+                'time_slot' => 'required|in:15,30,45,60'
             ]);
 
             $worker = Worker::create([
@@ -43,7 +37,8 @@ class WorkerController extends Controller
                 'ime' => $validatedData['ime'],
                 'prezime' => $validatedData['prezime'],
                 'email' => $validatedData['email'],
-                'telefon' => $validatedData['telefon']
+                'telefon' => $validatedData['telefon'],
+                'time_slot' => $validatedData['time_slot']
             ]);
 
             return response()->json([
@@ -62,7 +57,6 @@ class WorkerController extends Controller
     public function update(Request $request, Worker $worker)
     {
         try {
-            // Provera da li radnik pripada trenutno ulogovanom salonu
             if ($worker->user_id !== Auth::id()) {
                 return response()->json([
                     'message' => 'Nemate dozvolu za izmenu ovog radnika'
@@ -73,7 +67,8 @@ class WorkerController extends Controller
                 'ime' => 'required|string|max:100',
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email,' . $worker->id,
-                'telefon' => 'required|string|max:20'
+                'telefon' => 'required|string|max:20',
+                'time_slot' => 'required|in:15,30,45,60'
             ]);
 
             $worker->update($validatedData);

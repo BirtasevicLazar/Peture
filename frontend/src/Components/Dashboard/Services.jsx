@@ -35,7 +35,12 @@ const Services = ({ workerId }) => {
   };
 
   const resetForm = () => {
-    setFormData({ naziv: '', opis: '', cena: '', trajanje: '' });
+    setFormData({
+        naziv: '',
+        opis: '',
+        cena: '',
+        trajanje: ''
+    });
     setErrors({});
     setSelectedService(null);
   };

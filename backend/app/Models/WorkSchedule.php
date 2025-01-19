@@ -2,16 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkSchedule extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'user_id',
         'worker_id',
+        'user_id',
         'day_of_week',
         'is_working',
         'start_time',
@@ -24,10 +21,10 @@ class WorkSchedule extends Model
     protected $casts = [
         'is_working' => 'boolean',
         'has_break' => 'boolean',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
-        'break_start' => 'datetime:H:i',
-        'break_end' => 'datetime:H:i'
+        'start_time' => 'string',
+        'end_time' => 'string',
+        'break_start' => 'string',
+        'break_end' => 'string'
     ];
 
     public function worker()
@@ -35,8 +32,8 @@ class WorkSchedule extends Model
         return $this->belongsTo(Worker::class);
     }
 
-    public function salon()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 }

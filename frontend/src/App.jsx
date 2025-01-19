@@ -13,6 +13,7 @@ const Login = lazy(() => import('./Components/Authorization/Login'));
 const Register = lazy(() => import('./Components/Authorization/Register'));
 const NotFound = lazy(() => import('./Components/NotFound'));
 const Dashboard = lazy(() => import('./Components/Dashboard/Dashboard'));
+const BookingPage = lazy(() => import('./Components/Booking/BookingPage'));
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/404" element={<NotFound />} />
+            <Route path="/booking/:salonId" element={<BookingPage />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
         </Routes>

@@ -5,18 +5,29 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\WorkScheduleController; // Add this line
+use App\Http\Controllers\WorkScheduleController;
+use App\Http\Controllers\AppointmentController;
 
-// Auth routes
+// Public routes
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
+// Public booking routes
+Route::get('/salon/{id}', function($id) {
+    return \App\Models\User::with(['workers' => function($query) {
+        $query->with('services');
+    }])->findOrFail($id);
+});
+
+Route::get('/appointments/available', [AppointmentController::class, 'getAvailableAppointments']);
+Route::post('/appointments/book', [AppointmentController::class, 'bookAppointment']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::put('/user/update', [AuthController::class, 'update']); // Add this line
+    Route::put('/user/update', [AuthController::class, 'update']);
 
     // Workers routes
     Route::get('/workers', [WorkerController::class, 'index']);

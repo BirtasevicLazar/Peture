@@ -3,45 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\WorkSchedule;
+use App\Models\Worker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class WorkScheduleController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         try {
-            $schedules = WorkSchedule::where('user_id', Auth::id())
-                ->when($request->worker_id, function($query, $workerId) {
-                    return $query->where('worker_id', $workerId);
-                })
-                ->get();
+            $worker = Worker::where('user_id', Auth::id())->first();
             
-            return response()->json($schedules);
+            if (!$worker) {
+                return response()->json(['message' => 'Radnik nije pronađen'], 404);
+            }
+
+            $schedule = WorkSchedule::where('worker_id', $worker->id)->get();
+            return response()->json($schedule);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Greška prilikom dohvatanja rasporeda',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Greška pri dohvatanju rasporeda'], 500);
         }
     }
 
     public function store(Request $request)
     {
         try {
+            $worker = Worker::where('user_id', Auth::id())->first();
+            
+            if (!$worker) {
+                return response()->json(['message' => 'Radnik nije pronađen'], 404);
+            }
+
             $validatedData = $request->validate([
                 'worker_id' => 'required|exists:workers,id',
                 'day_of_week' => 'required|integer|between:0,6',
                 'is_working' => 'required|boolean',
-                'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
-                'has_break' => 'required|boolean',
-                'break_start' => 'required_if:has_break,true|nullable|date_format:H:i',
-                'break_end' => 'required_if:has_break,true|nullable|date_format:H:i|after:break_start'
+                'start_time' => 'required',
+                'end_time' => 'required',
+                'has_break' => 'boolean',
+                'break_start' => 'nullable',
+                'break_end' => 'nullable'
             ]);
 
-            $validatedData['user_id'] = Auth::id();
+            // Format time strings
+            $validatedData['start_time'] = date('H:i:s', strtotime($validatedData['start_time']));
+            $validatedData['end_time'] = date('H:i:s', strtotime($validatedData['end_time']));
+            
+            if (!empty($validatedData['break_start'])) {
+                $validatedData['break_start'] = date('H:i:s', strtotime($validatedData['break_start']));
+            }
+            if (!empty($validatedData['break_end'])) {
+                $validatedData['break_end'] = date('H:i:s', strtotime($validatedData['break_end']));
+            }
 
+            $validatedData['user_id'] = Auth::id();
             $schedule = WorkSchedule::create($validatedData);
 
             return response()->json([
@@ -50,7 +65,7 @@ class WorkScheduleController extends Controller
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Greška prilikom kreiranja rasporeda',
+                'message' => 'Greška pri kreiranju rasporeda',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -59,20 +74,31 @@ class WorkScheduleController extends Controller
     public function update(Request $request, WorkSchedule $workSchedule)
     {
         try {
-            if ($workSchedule->user_id !== Auth::id()) {
-                return response()->json([
-                    'message' => 'Nemate dozvolu za izmenu ovog rasporeda'
-                ], 403);
+            $worker = Worker::where('user_id', Auth::id())->first();
+            
+            if (!$worker || $workSchedule->worker_id !== $worker->id) {
+                return response()->json(['message' => 'Nemate dozvolu za izmenu ovog rasporeda'], 403);
             }
 
             $validatedData = $request->validate([
                 'is_working' => 'required|boolean',
-                'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
-                'has_break' => 'required|boolean',
-                'break_start' => 'required_if:has_break,true|nullable|date_format:H:i',
-                'break_end' => 'required_if:has_break,true|nullable|date_format:H:i|after:break_start'
+                'start_time' => 'required',
+                'end_time' => 'required',
+                'has_break' => 'boolean',
+                'break_start' => 'nullable',
+                'break_end' => 'nullable'
             ]);
+
+            // Format time strings
+            $validatedData['start_time'] = date('H:i:s', strtotime($validatedData['start_time']));
+            $validatedData['end_time'] = date('H:i:s', strtotime($validatedData['end_time']));
+            
+            if (!empty($validatedData['break_start'])) {
+                $validatedData['break_start'] = date('H:i:s', strtotime($validatedData['break_start']));
+            }
+            if (!empty($validatedData['break_end'])) {
+                $validatedData['break_end'] = date('H:i:s', strtotime($validatedData['break_end']));
+            }
 
             $workSchedule->update($validatedData);
 
@@ -82,7 +108,7 @@ class WorkScheduleController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Greška prilikom ažuriranja rasporeda',
+                'message' => 'Greška pri ažuriranju rasporeda',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -91,20 +117,17 @@ class WorkScheduleController extends Controller
     public function destroy(WorkSchedule $workSchedule)
     {
         try {
-            if ($workSchedule->user_id !== Auth::id()) {
-                return response()->json([
-                    'message' => 'Nemate dozvolu za brisanje ovog rasporeda'
-                ], 403);
+            $worker = Worker::where('user_id', Auth::id())->first();
+            
+            if (!$worker || $workSchedule->worker_id !== $worker->id) {
+                return response()->json(['message' => 'Nemate dozvolu za brisanje ovog rasporeda'], 403);
             }
 
             $workSchedule->delete();
-
-            return response()->json([
-                'message' => 'Raspored uspešno obrisan'
-            ]);
+            return response()->json(['message' => 'Raspored uspešno obrisan']);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Greška prilikom brisanja rasporeda',
+                'message' => 'Greška pri brisanju rasporeda',
                 'error' => $e->getMessage()
             ], 500);
         }

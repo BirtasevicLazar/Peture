@@ -14,7 +14,8 @@ class Worker extends Model
         'ime',
         'prezime',
         'email',
-        'telefon'
+        'telefon',
+        'time_slot'
     ];
 
     public function salon()

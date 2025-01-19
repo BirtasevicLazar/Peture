@@ -9,7 +9,8 @@ const Workers = ({ onWorkerSelect }) => {
     ime: '',
     prezime: '',
     email: '',
-    telefon: ''
+    telefon: '',
+    time_slot: '30'
   });
   const [errors, setErrors] = useState({});
 
@@ -33,7 +34,7 @@ const Workers = ({ onWorkerSelect }) => {
   };
 
   const resetForm = () => {
-    setFormData({ ime: '', prezime: '', email: '', telefon: '' });
+    setFormData({ ime: '', prezime: '', email: '', telefon: '', time_slot: '30' });
     setErrors({});
     setSelectedWorker(null);
   };
@@ -45,7 +46,8 @@ const Workers = ({ onWorkerSelect }) => {
         ime: worker.ime,
         prezime: worker.prezime,
         email: worker.email,
-        telefon: worker.telefon
+        telefon: worker.telefon,
+        time_slot: worker.time_slot
       });
     } else {
       resetForm();
@@ -249,6 +251,23 @@ const Workers = ({ onWorkerSelect }) => {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                   {errors.telefon && <p className="text-red-500 text-xs mt-1">{errors.telefon}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Vremenski slot (min)</label>
+                  <select
+                    name="time_slot"
+                    value={formData.time_slot}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                  >
+                    <option value="15">15 minuta</option>
+                    <option value="30">30 minuta</option>
+                    <option value="45">45 minuta</option>
+                    <option value="60">60 minuta</option>
+                  </select>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Ovo je najmanja jedinica vremena za zakazivanje termina
+                  </p>
                 </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">

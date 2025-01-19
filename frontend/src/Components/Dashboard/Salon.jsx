@@ -53,6 +53,37 @@ const Salon = () => {
     }
   };
 
+  const BookingUrl = () => {
+    const [copied, setCopied] = useState(false);
+    const bookingUrl = `${window.location.origin}/booking/${salonData.id}`;
+
+    const handleCopy = () => {
+      navigator.clipboard.writeText(bookingUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+      <div className="mt-8 bg-white p-4 rounded-lg shadow-sm">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Link za rezervacije</h3>
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            readOnly
+            value={bookingUrl}
+            className="flex-1 p-2 border rounded-md bg-gray-50"
+          />
+          <button
+            onClick={handleCopy}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          >
+            {copied ? 'Kopirano!' : 'Kopiraj'}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -178,6 +209,7 @@ const Salon = () => {
           </div>
         </div>
       )}
+      <BookingUrl />
     </div>
   );
 };
