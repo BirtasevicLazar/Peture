@@ -9,8 +9,7 @@ const Workers = ({ onWorkerSelect }) => {
     ime: '',
     prezime: '',
     email: '',
-    telefon: '',
-    time_slot: '30'
+    telefon: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -34,7 +33,7 @@ const Workers = ({ onWorkerSelect }) => {
   };
 
   const resetForm = () => {
-    setFormData({ ime: '', prezime: '', email: '', telefon: '', time_slot: '30' });
+    setFormData({ ime: '', prezime: '', email: '', telefon: '' });
     setErrors({});
     setSelectedWorker(null);
   };
@@ -46,8 +45,7 @@ const Workers = ({ onWorkerSelect }) => {
         ime: worker.ime,
         prezime: worker.prezime,
         email: worker.email,
-        telefon: worker.telefon,
-        time_slot: worker.time_slot
+        telefon: worker.telefon
       });
     } else {
       resetForm();
@@ -112,7 +110,6 @@ const Workers = ({ onWorkerSelect }) => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ime i prezime</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vremenski slot</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
               </tr>
             </thead>
@@ -131,9 +128,6 @@ const Workers = ({ onWorkerSelect }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
                     <div className="text-sm text-gray-500">{worker.telefon}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
-                    <div className="text-sm text-gray-500">{worker.time_slot} min</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -174,9 +168,6 @@ const Workers = ({ onWorkerSelect }) => {
                     </div>
                     <div className="text-sm text-gray-500">{worker.email}</div>
                     <div className="text-sm text-gray-500">{worker.telefon}</div>
-                    <div className="text-sm text-gray-500">
-                      Vremenski slot: {worker.time_slot} min
-                    </div>
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -258,23 +249,6 @@ const Workers = ({ onWorkerSelect }) => {
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
                   />
                   {errors.telefon && <p className="text-red-500 text-xs mt-1">{errors.telefon}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Vremenski slot (min)</label>
-                  <select
-                    name="time_slot"
-                    value={formData.time_slot}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
-                  >
-                    <option value="15">15 minuta</option>
-                    <option value="30">30 minuta</option>
-                    <option value="45">45 minuta</option>
-                    <option value="60">60 minuta</option>
-                  </select>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Ovo je najmanja jedinica vremena za zakazivanje termina
-                  </p>
                 </div>
               </div>
               <div className="mt-6 flex justify-end space-x-3">

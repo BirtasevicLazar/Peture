@@ -10,12 +10,11 @@ class Worker extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'ime',
         'prezime',
         'email',
         'telefon',
-        'time_slot'
+        'user_id'
     ];
 
     public function salon()

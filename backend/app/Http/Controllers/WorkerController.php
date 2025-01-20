@@ -23,67 +23,30 @@ class WorkerController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $validatedData = $request->validate([
-                'ime' => 'required|string|max:100',
-                'prezime' => 'required|string|max:100',
-                'email' => 'required|email|unique:workers,email',
-                'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,30,45,60'
-            ]);
+        $validated = $request->validate([
+            'ime' => 'required|string|max:255',
+            'prezime' => 'required|string|max:255',
+            'email' => 'required|email|unique:workers,email',
+            'telefon' => 'required|string|max:255'
+        ]);
 
-            $worker = Worker::create([
-                'user_id' => Auth::id(),
-                'ime' => $validatedData['ime'],
-                'prezime' => $validatedData['prezime'],
-                'email' => $validatedData['email'],
-                'telefon' => $validatedData['telefon'],
-                'time_slot' => $validatedData['time_slot']
-            ]);
+        $validated['user_id'] = auth()->id();
+        $worker = Worker::create($validated);
 
-            return response()->json([
-                'message' => 'Radnik uspešno dodat',
-                'worker' => $worker
-            ], 201);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Greška prilikom dodavanja radnika',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json($worker, 201);
     }
 
     public function update(Request $request, Worker $worker)
     {
-        try {
-            if ($worker->user_id !== Auth::id()) {
-                return response()->json([
-                    'message' => 'Nemate dozvolu za izmenu ovog radnika'
-                ], 403);
-            }
+        $validated = $request->validate([
+            'ime' => 'required|string|max:255',
+            'prezime' => 'required|string|max:255',
+            'email' => 'required|email|unique:workers,email,' . $worker->id,
+            'telefon' => 'required|string|max:255'
+        ]);
 
-            $validatedData = $request->validate([
-                'ime' => 'required|string|max:100',
-                'prezime' => 'required|string|max:100',
-                'email' => 'required|email|unique:workers,email,' . $worker->id,
-                'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,30,45,60'
-            ]);
-
-            $worker->update($validatedData);
-
-            return response()->json([
-                'message' => 'Radnik uspešno ažuriran',
-                'worker' => $worker
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Greška prilikom ažuriranja radnika',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        $worker->update($validated);
+        return response()->json($worker);
     }
 
     public function destroy(Worker $worker)
