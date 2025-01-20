@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'salon_name',
+        'slug',
         'address',
         'city',
         'phone',
@@ -51,6 +53,27 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($user) {
+            if ($user->salon_name) {
+                $slug = Str::slug($user->salon_name);
+                $count = static::whereRaw("slug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
+                $user->slug = $count ? "{$slug}-{$count}" : $slug;
+            }
+        });
+
+        static::updating(function ($user) {
+            if ($user->isDirty('salon_name')) {
+                $slug = Str::slug($user->salon_name);
+                $count = static::whereRaw("slug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
+                $user->slug = $count ? "{$slug}-{$count}" : $slug;
+            }
+        });
     }
 
     /**

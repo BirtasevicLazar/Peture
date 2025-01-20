@@ -55,7 +55,7 @@ const Salon = () => {
 
   const BookingUrl = () => {
     const [copied, setCopied] = useState(false);
-    const bookingUrl = `${window.location.origin}/booking/${salonData.id}`;
+    const bookingUrl = `${window.location.origin}/booking/${salonData.slug}`;
 
     const handleCopy = () => {
       navigator.clipboard.writeText(bookingUrl);

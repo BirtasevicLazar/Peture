@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import desktopImage from '../assets/Images/Dog.png';
-import mobileImage from '../assets/Images/Dog2.png';
+import desktopImage from '../../assets/Images/Dog.png';
+import mobileImage from '../../assets/Images/Dog2.png';
 
 const Hero = () => {
   return (

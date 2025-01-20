@@ -13,10 +13,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Public booking routes
-Route::get('/salon/{id}', function($id) {
+Route::get('/salon/{slug}', function($slug) {
     return \App\Models\User::with(['workers' => function($query) {
         $query->with('services');
-    }])->findOrFail($id);
+    }])->where('slug', $slug)->firstOrFail();
 });
 
 Route::get('/appointments/available', [AppointmentController::class, 'getAvailableAppointments']);
