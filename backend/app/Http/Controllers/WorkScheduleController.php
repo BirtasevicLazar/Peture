@@ -9,17 +9,25 @@ use Illuminate\Support\Facades\Auth;
 
 class WorkScheduleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $worker = Worker::where('user_id', Auth::id())->first();
+            $workerId = $request->query('worker_id');
+            
+            if (!$workerId) {
+                return response()->json(['message' => 'Worker ID je obavezan'], 400);
+            }
+
+            $worker = Worker::where('id', $workerId)
+                           ->where('user_id', Auth::id())
+                           ->first();
             
             if (!$worker) {
                 return response()->json(['message' => 'Radnik nije pronađen'], 404);
             }
 
-            $schedule = WorkSchedule::where('worker_id', $worker->id)->get();
-            return response()->json($schedule);
+            $schedules = WorkSchedule::where('worker_id', $workerId)->get();
+            return response()->json($schedules);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Greška pri dohvatanju rasporeda'], 500);
         }
@@ -28,12 +36,6 @@ class WorkScheduleController extends Controller
     public function store(Request $request)
     {
         try {
-            $worker = Worker::where('user_id', Auth::id())->first();
-            
-            if (!$worker) {
-                return response()->json(['message' => 'Radnik nije pronađen'], 404);
-            }
-
             $validatedData = $request->validate([
                 'worker_id' => 'required|exists:workers,id',
                 'day_of_week' => 'required|integer|between:0,6',
@@ -44,6 +46,24 @@ class WorkScheduleController extends Controller
                 'break_start' => 'nullable',
                 'break_end' => 'nullable'
             ]);
+
+            // Proveri da li radnik pripada trenutno ulogovanom salonu
+            $worker = Worker::where('id', $validatedData['worker_id'])
+                          ->where('user_id', Auth::id())
+                          ->first();
+            
+            if (!$worker) {
+                return response()->json(['message' => 'Nemate dozvolu za kreiranje rasporeda za ovog radnika'], 403);
+            }
+
+            // Proveri da li već postoji raspored za taj dan
+            $existingSchedule = WorkSchedule::where('worker_id', $validatedData['worker_id'])
+                                          ->where('day_of_week', $validatedData['day_of_week'])
+                                          ->first();
+            
+            if ($existingSchedule) {
+                return response()->json(['message' => 'Raspored za ovaj dan već postoji'], 400);
+            }
 
             // Format time strings
             $validatedData['start_time'] = date('H:i:s', strtotime($validatedData['start_time']));
@@ -74,9 +94,12 @@ class WorkScheduleController extends Controller
     public function update(Request $request, WorkSchedule $workSchedule)
     {
         try {
-            $worker = Worker::where('user_id', Auth::id())->first();
+            // Proveri da li radnik pripada trenutno ulogovanom salonu
+            $worker = Worker::where('id', $workSchedule->worker_id)
+                          ->where('user_id', Auth::id())
+                          ->first();
             
-            if (!$worker || $workSchedule->worker_id !== $worker->id) {
+            if (!$worker) {
                 return response()->json(['message' => 'Nemate dozvolu za izmenu ovog rasporeda'], 403);
             }
 

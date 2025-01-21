@@ -25,22 +25,28 @@ const WorkerSchedule = ({ workerId }) => {
     { id: 0, name: 'Nedelja' }
   ];
 
+  // Reset schedules when workerId changes
+  useEffect(() => {
+    setSchedules([]);
+    if (workerId) {
+      fetchSchedules();
+    }
+  }, [workerId]);
+
   const fetchSchedules = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/work-schedules?worker_id=${workerId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setSchedules(response.data);
+      // Ensure we only set schedules for the current worker
+      if (response.data && Array.isArray(response.data)) {
+        const workerSchedules = response.data.filter(schedule => schedule.worker_id === workerId);
+        setSchedules(workerSchedules);
+      }
     } catch (error) {
       console.error('Error fetching schedules:', error);
     }
   };
-
-  useEffect(() => {
-    if (workerId) {
-      fetchSchedules();
-    }
-  }, [workerId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,7 +70,10 @@ const WorkerSchedule = ({ workerId }) => {
   };
 
   const handleOpenModal = (day = null) => {
-    const existingSchedule = schedules.find(s => s.day_of_week === day?.id);
+    if (!workerId) return;
+    
+    const existingSchedule = schedules.find(s => s.day_of_week === day?.id && s.worker_id === workerId);
+    
     if (day && existingSchedule) {
       setSelectedDay(day);
       setFormData({
@@ -75,15 +84,20 @@ const WorkerSchedule = ({ workerId }) => {
         break_start: existingSchedule.break_start || "13:00",
         break_end: existingSchedule.break_end || "14:00"
       });
-    } else {
+    } else if (day) {
       resetForm();
       setSelectedDay(day);
+    } else {
+      resetForm();
+      setSelectedDay(null);
     }
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!workerId || !selectedDay) return;
+
     try {
       const payload = {
         worker_id: workerId,
@@ -91,7 +105,7 @@ const WorkerSchedule = ({ workerId }) => {
         ...formData
       };
 
-      const existingSchedule = schedules.find(s => s.day_of_week === selectedDay.id);
+      const existingSchedule = schedules.find(s => s.day_of_week === selectedDay.id && s.worker_id === workerId);
 
       if (existingSchedule) {
         await axios.put(`${import.meta.env.VITE_API_URL}/work-schedules/${existingSchedule.id}`, payload, {
@@ -103,7 +117,7 @@ const WorkerSchedule = ({ workerId }) => {
         });
       }
       setIsModalOpen(false);
-      fetchSchedules();
+      await fetchSchedules(); // Refresh schedules after update
       resetForm();
     } catch (error) {
       console.error('Error submitting schedule:', error.response?.data);
@@ -116,7 +130,7 @@ const WorkerSchedule = ({ workerId }) => {
   };
 
   const getScheduleForDay = (dayId) => {
-    return schedules.find(s => s.day_of_week === dayId);
+    return schedules.find(s => s.day_of_week === dayId && s.worker_id === workerId);
   };
 
   return (
@@ -274,7 +288,7 @@ const WorkerSchedule = ({ workerId }) => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {selectedDay.name} - Radno vreme
+                  {selectedDay?.name} - Radno vreme
                 </h2>
                 <button
                   onClick={() => {
