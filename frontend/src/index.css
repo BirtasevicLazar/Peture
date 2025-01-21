@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    @apply font-light;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-light;
+  }
+
+  p, span, div, a {
+    @apply font-light;
+  }
+}
+
 @keyframes fadeIn {
   from { 
     opacity: 0; 
@@ -16,4 +30,3 @@
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
-

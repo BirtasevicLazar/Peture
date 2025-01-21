@@ -24,6 +24,11 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
       },
+      fontWeight: {
+        light: '200',
+        normal: '300',
+        medium: '400',
+      },
     },
   },
   plugins: [],

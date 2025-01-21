@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -23,6 +23,16 @@ const BookingPage = () => {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [apiError, setApiError] = useState(null);
 
+  // Dodajemo funkcije za drag scroll
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const scrollRef = useRef(null);
+
+  // Dodajemo state za praćenje scroll pozicije
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollWidth, setScrollWidth] = useState(100);
+
   useEffect(() => {
     fetchSalonData();
   }, [salonId]);
@@ -40,6 +50,34 @@ const BookingPage = () => {
       fetchAvailableAppointments();
     }
   }, [selectedWorker, selectedService, selectedDate]);
+
+  // Dodajemo useEffect za praćenje scroll pozicije
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        const element = scrollRef.current;
+        const scrollLeft = element.scrollLeft;
+        const maxScroll = element.scrollWidth - element.clientWidth;
+        const progress = (scrollLeft / maxScroll) * 100;
+        const width = (element.clientWidth / element.scrollWidth) * 100;
+        
+        setScrollProgress(progress || 0);
+        setScrollWidth(width || 100);
+      }
+    };
+
+    const currentRef = scrollRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', handleScroll);
+      handleScroll(); // Inicijalno postavljanje
+    }
+
+    return () => {
+      if (currentRef) {
+        currentRef.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [appointments]); // Dodajemo appointments kao dependency da bi se ažuriralo kada se učitaju novi termini
 
   const showError = (message) => {
     setApiError(message);
@@ -221,6 +259,38 @@ const BookingPage = () => {
   const handleBack = () => {
     setStep(s => s - 1);
     setErrors({});
+  };
+
+  const handleScrollLeft = () => {
+    const container = document.querySelector('.scroll-container');
+    if (container) {
+      container.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const handleScrollRight = () => {
+    const container = document.querySelector('.scroll-container');
+    if (container) {
+      container.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
   const steps = [
@@ -487,21 +557,45 @@ const BookingPage = () => {
                   onChange={(e) => setSelectedDate(new Date(e.target.value))}
                   min={new Date().toISOString().split('T')[0]}
                 />
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {appointments.map(time => (
-                    <button
-                      key={time.id}
-                      onClick={() => setSelectedTime(time)}
-                      className={`
-                        p-4 rounded-xl text-center transition-all duration-200
-                        ${selectedTime?.id === time.id 
-                          ? 'bg-green-500 text-white' 
-                          : 'bg-gray-50 hover:bg-green-50 text-gray-900'}
-                      `}
+                <div className="relative bg-white rounded-xl p-4 shadow-sm">
+                  {/* Kontejner za termine */}
+                  <div className="relative">
+                    <div 
+                      ref={scrollRef}
+                      className="overflow-x-auto relative select-none bg-gray-50/50 rounded-lg pb-4"
+                      onMouseDown={handleMouseDown}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                      onMouseMove={handleMouseMove}
+                      style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#22c55e #f3f4f6'
+                      }}
                     >
-                      {time.start_time}
-                    </button>
-                  ))}
+                      <div className="flex space-x-3 min-w-max px-4 py-2">
+                        {appointments.map(time => (
+                          <button
+                            key={time.id}
+                            onClick={() => setSelectedTime(time)}
+                            className={`
+                              relative flex-shrink-0 px-6 py-4 rounded-xl text-center transition-all duration-200 
+                              min-w-[120px] group hover:-translate-y-0.5
+                              ${selectedTime?.id === time.id 
+                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' 
+                                : 'bg-white hover:bg-green-50 text-gray-900 hover:shadow-md'}
+                            `}
+                          >
+                            <span className="block text-lg font-medium">
+                              {time.start_time}
+                            </span>
+                            {selectedTime?.id === time.id && (
+                              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
