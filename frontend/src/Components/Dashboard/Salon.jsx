@@ -55,29 +55,93 @@ const Salon = () => {
 
   const BookingUrl = () => {
     const [copied, setCopied] = useState(false);
+    const [error, setError] = useState(false);
     const bookingUrl = `${window.location.origin}/booking/${salonData.slug}`;
 
-    const handleCopy = () => {
-      navigator.clipboard.writeText(bookingUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+    const handleCopy = async () => {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          // Za moderne browsere
+          await navigator.clipboard.writeText(bookingUrl);
+          setCopied(true);
+        } else {
+          // Fallback za starije browsere
+          const textArea = document.createElement("textarea");
+          textArea.value = bookingUrl;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          try {
+            document.execCommand('copy');
+            textArea.remove();
+            setCopied(true);
+          } catch (err) {
+            console.error('Greška pri kopiranju:', err);
+            setError(true);
+            textArea.remove();
+            return;
+          }
+        }
+        
+        setTimeout(() => {
+          setCopied(false);
+          setError(false);
+        }, 2000);
+      } catch (err) {
+        console.error('Greška pri kopiranju:', err);
+        setError(true);
+        setTimeout(() => setError(false), 2000);
+      }
     };
 
     return (
-      <div className="mt-8 bg-white p-4 rounded-lg shadow-sm">
+      <div className="mt-8 bg-white p-4 sm:p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Link za rezervacije</h3>
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            readOnly
-            value={bookingUrl}
-            className="flex-1 p-2 border rounded-md bg-gray-50"
-          />
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="relative flex-1 min-w-0">
+            <input
+              type="text"
+              readOnly
+              value={bookingUrl}
+              className="w-full p-3 border rounded-lg bg-gray-50 text-gray-600 pr-4 text-sm sm:text-base"
+            />
+          </div>
           <button
             onClick={handleCopy}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className={`flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200 w-full sm:w-auto
+              ${error 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : copied 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
           >
-            {copied ? 'Kopirano!' : 'Kopiraj'}
+            {error ? (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span className="font-medium">Greška</span>
+              </>
+            ) : copied ? (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="font-medium">Kopirano!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                <span className="font-medium">Kopiraj</span>
+              </>
+            )}
           </button>
         </div>
       </div>

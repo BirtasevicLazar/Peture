@@ -266,7 +266,7 @@ const Dashboard = () => {
         {/* Mobile Bottom Navigation - hidden on desktop */}
         {!selectedWorker ? (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-            <div className="flex justify-around">
+            <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
@@ -274,47 +274,47 @@ const Dashboard = () => {
                     setActiveComponent(item.id);
                     setSelectedWorker(null);
                   }}
-                  className={`flex flex-col items-center py-2 px-4 ${
-                    activeComponent === item.id
-                      ? 'text-green-600'
-                      : 'text-gray-600'
-                  }`}
+                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-lg transition-colors
+                    ${activeComponent === item.id
+                      ? 'text-green-600 bg-green-50'
+                      : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="h-6 w-6 mb-1"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                   </svg>
-                  <span className="text-xs mt-1">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </button>
               ))}
             </div>
           </div>
         ) : (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-            <div className="flex justify-around">
+            <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
               {workerSubmenuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleSubmenuClick(item.id)}
-                  className={`flex flex-col items-center py-2 px-4 ${
-                    activeSubmenu === item.id
-                      ? 'text-green-600'
-                      : 'text-gray-600'
-                  }`}
+                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-lg transition-colors
+                    ${activeSubmenu === item.id
+                      ? 'text-green-600 bg-green-50'
+                      : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="h-6 w-6 mb-1"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                   </svg>
-                  <span className="text-xs mt-1">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </button>
               ))}
             </div>
@@ -324,54 +324,51 @@ const Dashboard = () => {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-
-            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-              <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg 
-                      className="h-6 w-6 text-red-600" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      strokeWidth="1.5" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                    <h3 className="text-lg font-semibold leading-6 text-gray-900">
-                      Potvrda odjave
-                    </h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
-                      </p>
-                    </div>
-                  </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+          
+          <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl transition-all sm:w-full sm:max-w-md">
+            <div className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                  <svg 
+                    className="h-6 w-6 text-red-600" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    strokeWidth="1.5" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Potvrda odjave
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
+                  </p>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                <button
-                  type="button"
-                  onClick={confirmLogout}
-                  className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                >
-                  Odjavi se
-                </button>
+              
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(false)}
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  className="inline-flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 sm:w-auto"
                 >
                   Otkaži
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmLogout}
+                  className="inline-flex w-full justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
+                >
+                  Odjavi se
                 </button>
               </div>
             </div>
