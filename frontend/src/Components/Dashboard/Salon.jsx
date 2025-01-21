@@ -149,21 +149,31 @@ const Salon = () => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Informacije o salonu</h2>
-        <button
-          onClick={handleOpenModal}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-        >
-          Izmeni podatke
-        </button>
+    <div className="h-full pb-20 lg:pb-0">
+      {/* Header */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Informacije o salonu</h2>
+          <button
+            onClick={handleOpenModal}
+            className="inline-flex items-center justify-center px-4 py-2.5 border border-transparent 
+                     text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 
+                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 
+                     transition-colors duration-200 shadow-sm"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            Izmeni podatke
+          </button>
+        </div>
       </div>
 
-      {/* Salon Info Card - Mobile Optimized */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="p-4 md:p-6 space-y-4">
-          <div className="space-y-4">
+      {/* Salon Info Card */}
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
+        <div className="p-4 sm:p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Naziv salona</label>
               <p className="mt-1 text-base font-medium text-gray-900">{salonData.salon_name || '-'}</p>
@@ -188,92 +198,107 @@ const Salon = () => {
         </div>
       </div>
 
+      {/* Booking URL Section */}
+      <BookingUrl />
+
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Izmeni podatke o salonu</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Izmeni podatke o salonu</h2>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setErrors({});
+                  }}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Naziv salona</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Naziv salona</label>
                   <input
                     type="text"
                     name="salon_name"
                     value={editData.salon_name || ''}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  {errors.salon_name && <p className="text-red-500 text-xs mt-1">{errors.salon_name}</p>}
+                  {errors.salon_name && <p className="mt-1 text-sm text-red-600">{errors.salon_name}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input
                     type="email"
                     name="email"
                     value={editData.email || ''}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Adresa</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresa</label>
                   <input
                     type="text"
                     name="address"
                     value={editData.address || ''}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                  {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Grad</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Grad</label>
                   <input
                     type="text"
                     name="city"
                     value={editData.city || ''}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                  {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Telefon</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
                   <input
                     type="text"
                     name="phone"
                     value={editData.phone || ''}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                  {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                 </div>
-              </div>
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setErrors({});
-                  }}
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
-                >
-                  Otkaži
-                </button>
-                <button
-                  type="submit"
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
-                >
-                  Sačuvaj
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setErrors({});
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Otkaži
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+                  >
+                    Sačuvaj
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
-      <BookingUrl />
     </div>
   );
 };

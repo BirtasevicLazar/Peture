@@ -120,98 +120,145 @@ const WorkerSchedule = ({ workerId }) => {
   };
 
   return (
-    <div>
+    <div className="h-full pb-20 lg:pb-0">
+      {/* Header */}
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Raspored rada</h2>
+        </div>
+      </div>
+
+      {/* Schedule Table/Cards Container */}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="hidden md:block"> {/* Desktop view */}
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Radno vreme</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {daysOfWeek.map((day) => {
-                const schedule = getScheduleForDay(day.id);
-                return (
-                  <tr key={day.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{day.name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        schedule?.is_working 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {schedule?.is_working ? 'Radno' : 'Neradno'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {schedule?.is_working ? (
-                        <div className="text-sm text-gray-900">
-                          {schedule.start_time} - {schedule.end_time}
-                          {schedule.has_break && (
-                            <span className="text-gray-500 ml-2">
-                              (Pauza: {schedule.break_start} - {schedule.break_end})
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-500">-</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenModal(day)}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        {schedule ? 'Izmeni' : 'Postavi'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dan</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Radno vreme</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {daysOfWeek.map((day) => {
+                  const schedule = getScheduleForDay(day.id);
+                  return (
+                    <tr key={day.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{day.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          schedule?.is_working 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                            schedule?.is_working ? 'bg-green-600' : 'bg-gray-500'
+                          }`}></span>
+                          {schedule?.is_working ? 'Radno' : 'Neradno'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {schedule?.is_working ? (
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-900 flex items-center">
+                              <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {schedule.start_time} - {schedule.end_time}
+                            </div>
+                            {schedule.has_break && (
+                              <div className="text-sm text-gray-500 flex items-center">
+                                <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Pauza: {schedule.break_start} - {schedule.break_end}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-500">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleOpenModal(day)}
+                          className="inline-flex items-center text-green-600 hover:text-green-900 transition-colors duration-150"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          {schedule ? 'Izmeni' : 'Postavi'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Mobile view */}
         <div className="md:hidden">
-          <div className="space-y-3 p-4">
+          <div className="divide-y divide-gray-200">
             {daysOfWeek.map((day) => {
               const schedule = getScheduleForDay(day.id);
               return (
-                <div key={day.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-900">{day.name}</div>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        schedule?.is_working 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {schedule?.is_working ? 'Radno' : 'Neradno'}
-                      </span>
-                      {schedule?.is_working && (
-                        <div className="text-sm text-gray-600">
-                          {schedule.start_time} - {schedule.end_time}
-                          {schedule.has_break && (
-                            <div className="text-gray-500 text-xs mt-1">
-                              Pauza: {schedule.break_start} - {schedule.break_end}
-                            </div>
-                          )}
+                <div key={day.id} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-150">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <span className="text-base font-medium text-gray-900">{day.name}</span>
+                          <span className={`ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            schedule?.is_working 
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                              schedule?.is_working ? 'bg-green-600' : 'bg-gray-500'
+                            }`}></span>
+                            {schedule?.is_working ? 'Radno' : 'Neradno'}
+                          </span>
                         </div>
-                      )}
+                        {schedule?.is_working && (
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-600 flex items-center">
+                              <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {schedule.start_time} - {schedule.end_time}
+                            </div>
+                            {schedule.has_break && (
+                              <div className="text-sm text-gray-500 flex items-center">
+                                <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Pauza: {schedule.break_start} - {schedule.break_end}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleOpenModal(day)}
+                        className="inline-flex items-center p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-150"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleOpenModal(day)}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      {schedule ? 'Izmeni' : 'Postavi'}
-                    </button>
                   </div>
                 </div>
               );
@@ -222,23 +269,36 @@ const WorkerSchedule = ({ workerId }) => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {selectedDay.name} - Radno vreme
-            </h3>
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                <div className="flex items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {selectedDay.name} - Radno vreme
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetForm();
+                  }}
+                  className="text-gray-400 hover:text-gray-500 transition-colors duration-150"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                   <input
                     type="checkbox"
                     id="is_working"
                     name="is_working"
                     checked={formData.is_working}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-green-600 rounded border-gray-300"
+                    className="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
                   />
-                  <label htmlFor="is_working" className="ml-2 text-sm text-gray-700">
+                  <label htmlFor="is_working" className="ml-2 text-sm font-medium text-gray-700">
                     Radni dan
                   </label>
                 </div>
@@ -247,37 +307,37 @@ const WorkerSchedule = ({ workerId }) => {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Početak</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Početak</label>
                         <input
                           type="time"
                           name="start_time"
                           value={formData.start_time}
                           onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                          className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Kraj</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Kraj</label>
                         <input
                           type="time"
                           name="end_time"
                           value={formData.end_time}
                           onChange={handleInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                          className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
                     </div>
 
-                    <div className="flex items-center">
+                    <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                       <input
                         type="checkbox"
                         id="has_break"
                         name="has_break"
                         checked={formData.has_break}
                         onChange={handleInputChange}
-                        className="h-4 w-4 text-green-600 rounded border-gray-300"
+                        className="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
                       />
-                      <label htmlFor="has_break" className="ml-2 text-sm text-gray-700">
+                      <label htmlFor="has_break" className="ml-2 text-sm font-medium text-gray-700">
                         Pauza
                       </label>
                     </div>
@@ -285,23 +345,23 @@ const WorkerSchedule = ({ workerId }) => {
                     {formData.has_break && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Početak pauze</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Početak pauze</label>
                           <input
                             type="time"
                             name="break_start"
                             value={formData.break_start}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Kraj pauze</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Kraj pauze</label>
                           <input
                             type="time"
                             name="break_end"
                             value={formData.break_end}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                           />
                         </div>
                       </div>
@@ -309,23 +369,30 @@ const WorkerSchedule = ({ workerId }) => {
                   </>
                 )}
 
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-3 mt-6">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="bg-white text-gray-700 px-3 py-1 rounded-md text-sm border hover:bg-gray-50"
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      resetForm();
+                    }}
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 
+                             rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                             focus:ring-green-500 transition-colors duration-200"
                   >
                     Otkaži
                   </button>
                   <button
                     type="submit"
-                    className="bg-green-600 text-white px-3 py-1 rounded-md text-sm hover:bg-green-700"
+                    className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg 
+                             hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                             focus:ring-green-500 transition-colors duration-200"
                   >
                     Sačuvaj
                   </button>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
