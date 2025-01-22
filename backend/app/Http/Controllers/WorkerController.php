@@ -29,7 +29,7 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email',
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,30,45,60'
+                'time_slot' => 'required|in:15,20,30'
             ]);
 
             $worker = Worker::create([
@@ -54,6 +54,17 @@ class WorkerController extends Controller
         }
     }
 
+    public function show(Worker $worker)
+    {
+        if ($worker->user_id !== Auth::id()) {
+            return response()->json([
+                'message' => 'Nemate dozvolu za pristup ovom radniku'
+            ], 403);
+        }
+
+        return response()->json($worker);
+    }
+
     public function update(Request $request, Worker $worker)
     {
         try {
@@ -68,7 +79,7 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email,' . $worker->id,
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,30,45,60'
+                'time_slot' => 'required|in:15,20,30'
             ]);
 
             $worker->update($validatedData);
@@ -89,7 +100,6 @@ class WorkerController extends Controller
     public function destroy(Worker $worker)
     {
         try {
-            // Provera da li radnik pripada trenutno ulogovanom salonu
             if ($worker->user_id !== Auth::id()) {
                 return response()->json([
                     'message' => 'Nemate dozvolu za brisanje ovog radnika'

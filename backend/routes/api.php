@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Workers routes
     Route::get('/workers', [WorkerController::class, 'index']);
+    Route::get('/workers/{worker}', [WorkerController::class, 'show']);
     Route::post('/workers', [WorkerController::class, 'store']);
     Route::put('/workers/{worker}', [WorkerController::class, 'update']);
     Route::delete('/workers/{worker}', [WorkerController::class, 'destroy']);

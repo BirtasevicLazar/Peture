@@ -101,17 +101,12 @@ class AppointmentController extends Controller
     public function getAvailableAppointments(Request $request)
     {
         try {
-            $workerId = $request->worker_id;
-            $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
+            $workerId = $request->query('worker_id');
+            $serviceId = $request->query('service_id');
+            $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
             
             $worker = Worker::findOrFail($workerId);
-            $service = Service::where('worker_id', $workerId)->first();
-            
-            if (!$service) {
-                return response()->json([
-                    'message' => 'Radnik nema definisane usluge'
-                ], 400);
-            }
+            $service = Service::findOrFail($serviceId);
             
             $schedule = WorkSchedule::where('worker_id', $workerId)
                 ->where('is_working', true)
@@ -125,6 +120,9 @@ class AppointmentController extends Controller
             $timeSlot = $worker->time_slot;
             $serviceDuration = $service->trajanje;
             
+            // Izračunaj koliko time slotova je potrebno za uslugu
+            $requiredSlots = ceil($serviceDuration / $timeSlot);
+            
             try {
                 $startTime = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->start_time, 0, 5));
                 $endTime = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->end_time, 0, 5));
@@ -135,29 +133,55 @@ class AppointmentController extends Controller
             $availableSlots = [];
             $currentTime = $startTime->copy();
             
-            while ($currentTime->copy()->addMinutes($timeSlot) <= $endTime) {
+            while ($currentTime->copy()->addMinutes($timeSlot * $requiredSlots) <= $endTime) {
                 $slotEndTime = $currentTime->copy()->addMinutes($serviceDuration);
                 
-                // Proveri da li postoji preklapanje sa postojećim rezervacijama
-                $exists = Appointment::where('worker_id', $workerId)
-                    ->where('status', 'booked')
-                    ->where(function($query) use ($currentTime, $slotEndTime) {
-                        $query->where(function($q) use ($currentTime, $slotEndTime) {
-                            $q->where('start_time', '<=', $slotEndTime)
-                              ->where('end_time', '>', $currentTime);
-                        });
-                    })
-                    ->exists();
+                // Proveri da li postoji preklapanje sa postojećim rezervacijama za sve potrebne slotove
+                $isAvailable = true;
+                $checkTime = $currentTime->copy();
                 
-                if (!$exists) {
+                for ($i = 0; $i < $requiredSlots; $i++) {
+                    $checkEndTime = $checkTime->copy()->addMinutes($timeSlot);
+                    
+                    $exists = Appointment::where('worker_id', $workerId)
+                        ->where('status', 'booked')
+                        ->where(function($query) use ($checkTime, $checkEndTime) {
+                            $query->where(function($q) use ($checkTime, $checkEndTime) {
+                                $q->where('start_time', '<', $checkEndTime)
+                                  ->where('end_time', '>', $checkTime);
+                            });
+                        })
+                        ->exists();
+                    
+                    if ($exists) {
+                        $isAvailable = false;
+                        break;
+                    }
+                    
+                    $checkTime->addMinutes($timeSlot);
+                }
+                
+                if ($isAvailable) {
+                    // Ako je pauza definisana, proveri da li termin prelazi preko pauze
+                    if ($schedule->has_break) {
+                        $breakStart = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->break_start, 0, 5));
+                        $breakEnd = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->break_end, 0, 5));
+                        
+                        if ($currentTime < $breakEnd && $slotEndTime > $breakStart) {
+                            $currentTime->addMinutes($timeSlot);
+                            continue;
+                        }
+                    }
+                    
                     $availableSlots[] = [
-                        'id' => uniqid(), // Generišemo jedinstveni ID za frontend
+                        'id' => uniqid(),
                         'start_time' => $currentTime->format('H:i'),
                         'end_time' => $slotEndTime->format('H:i'),
                         'date' => $currentTime->format('Y-m-d'),
                         'service' => $service->naziv,
                         'duration' => $service->trajanje,
-                        'worker' => $worker->ime . ' ' . $worker->prezime
+                        'worker' => $worker->ime . ' ' . $worker->prezime,
+                        'price' => $service->cena
                     ];
                 }
                 
@@ -191,24 +215,42 @@ class AppointmentController extends Controller
             
             $startTime = Carbon::parse($validated['start_time']);
             $endTime = $startTime->copy()->addMinutes($service->trajanje);
+            
+            // Proveri da li je termin već zauzet za celo trajanje usluge
+            $timeSlot = $worker->time_slot;
+            $requiredSlots = ceil($service->trajanje / $timeSlot);
+            
+            $isAvailable = true;
+            $checkTime = $startTime->copy();
+            
+            for ($i = 0; $i < $requiredSlots; $i++) {
+                $checkEndTime = $checkTime->copy()->addMinutes($timeSlot);
+                
+                $exists = Appointment::where('worker_id', $validated['worker_id'])
+                    ->where('status', 'booked')
+                    ->where(function($query) use ($checkTime, $checkEndTime) {
+                        $query->where(function($q) use ($checkTime, $checkEndTime) {
+                            $q->where('start_time', '<', $checkEndTime)
+                              ->where('end_time', '>', $checkTime);
+                        });
+                    })
+                    ->exists();
+                
+                if ($exists) {
+                    $isAvailable = false;
+                    break;
+                }
+                
+                $checkTime->addMinutes($timeSlot);
+            }
 
-            // Proveri da li je termin već zauzet
-            $exists = Appointment::where('worker_id', $validated['worker_id'])
-                ->where('status', 'booked')
-                ->where(function($query) use ($startTime, $endTime) {
-                    $query->where(function($q) use ($startTime, $endTime) {
-                        $q->where('start_time', '<=', $endTime)
-                          ->where('end_time', '>', $startTime);
-                    });
-                })
-                ->exists();
-
-            if ($exists) {
+            if (!$isAvailable) {
                 return response()->json([
                     'message' => 'Termin je već zauzet'
                 ], 400);
             }
 
+            // Kreiraj jedan appointment za celo trajanje usluge
             $appointment = Appointment::create([
                 'user_id' => $worker->user_id,
                 'worker_id' => $validated['worker_id'],

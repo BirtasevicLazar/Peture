@@ -10,7 +10,7 @@ const Workers = ({ onWorkerSelect }) => {
     prezime: '',
     email: '',
     telefon: '',
-    time_slot: '30'
+    time_slot: '15'
   });
   const [errors, setErrors] = useState({});
 
@@ -34,7 +34,7 @@ const Workers = ({ onWorkerSelect }) => {
   };
 
   const resetForm = () => {
-    setFormData({ ime: '', prezime: '', email: '', telefon: '', time_slot: '30' });
+    setFormData({ ime: '', prezime: '', email: '', telefon: '', time_slot: '15' });
     setErrors({});
     setSelectedWorker(null);
   };
@@ -321,9 +321,8 @@ const Workers = ({ onWorkerSelect }) => {
                     className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   >
                     <option value="15">15 minuta</option>
+                    <option value="20">20 minuta</option>
                     <option value="30">30 minuta</option>
-                    <option value="45">45 minuta</option>
-                    <option value="60">60 minuta</option>
                   </select>
                   <p className="mt-1 text-sm text-gray-500">
                     Ovo je najmanja jedinica vremena za zakazivanje termina

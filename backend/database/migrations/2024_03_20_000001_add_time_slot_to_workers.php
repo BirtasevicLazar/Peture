@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('workers', function (Blueprint $table) {
-            $table->integer('time_slot')->default(30)->after('telefon'); // 15, 30, 45, 60 minuta
+            $table->integer('time_slot')->default(15)->after('telefon'); // 15 ili 20 minuta
         });
     }
 

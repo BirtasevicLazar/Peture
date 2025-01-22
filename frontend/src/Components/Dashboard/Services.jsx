@@ -5,13 +5,30 @@ const Services = ({ workerId }) => {
   const [services, setServices] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [worker, setWorker] = useState(null);
   const [formData, setFormData] = useState({
     naziv: '',
     opis: '',
     cena: '',
-    trajanje: '30'
+    trajanje: ''
   });
   const [errors, setErrors] = useState({});
+
+  const fetchWorker = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers/${workerId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setWorker(response.data);
+      // Postavi inicijalno trajanje na vrednost time_slot-a
+      setFormData(prev => ({
+        ...prev,
+        trajanje: response.data.time_slot.toString()
+      }));
+    } catch (error) {
+      console.error('Error fetching worker:', error);
+    }
+  };
 
   const fetchServices = async () => {
     try {
@@ -26,6 +43,7 @@ const Services = ({ workerId }) => {
 
   useEffect(() => {
     if (workerId) {
+      fetchWorker();
       fetchServices();
     }
   }, [workerId]);
@@ -36,10 +54,10 @@ const Services = ({ workerId }) => {
 
   const resetForm = () => {
     setFormData({
-        naziv: '',
-        opis: '',
-        cena: '',
-        trajanje: '30'
+      naziv: '',
+      opis: '',
+      cena: '',
+      trajanje: worker ? worker.time_slot.toString() : ''
     });
     setErrors({});
     setSelectedService(null);
@@ -60,6 +78,20 @@ const Services = ({ workerId }) => {
     setIsModalOpen(true);
   };
 
+  // Generiši opcije za trajanje usluge na osnovu time_slot-a radnika
+  const getDurationOptions = () => {
+    if (!worker?.time_slot) return [];
+    const timeSlot = parseInt(worker.time_slot);
+    const maxDuration = 180; // Maksimalno trajanje od 3 sata
+    const options = [];
+    
+    for (let duration = timeSlot; duration <= maxDuration; duration += timeSlot) {
+      options.push(duration);
+    }
+    
+    return options;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -71,23 +103,34 @@ const Services = ({ workerId }) => {
         trajanje: parseInt(formData.trajanje)
       };
 
+      let response;
       if (selectedService) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/services/${selectedService.id}`, payload, {
+        response = await axios.put(`${import.meta.env.VITE_API_URL}/services/${selectedService.id}`, payload, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
       } else {
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/services`, payload, {
+        response = await axios.post(`${import.meta.env.VITE_API_URL}/services`, payload, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
-        console.log('Service created:', response.data);
       }
+
       setIsModalOpen(false);
       fetchServices();
       resetForm();
     } catch (error) {
       console.error('Error submitting service:', error.response?.data);
       if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
+        const serverErrors = error.response.data.errors;
+        // Transformiši greške u format koji očekuje frontend
+        const formattedErrors = {};
+        Object.keys(serverErrors).forEach(key => {
+          formattedErrors[key] = Array.isArray(serverErrors[key]) 
+            ? serverErrors[key][0] 
+            : serverErrors[key];
+        });
+        setErrors(formattedErrors);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
       } else {
         setErrors({ general: 'Došlo je do greške prilikom čuvanja usluge.' });
       }
@@ -307,13 +350,16 @@ const Services = ({ workerId }) => {
                     onChange={handleInputChange}
                     className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   >
-                    {[15, 30, 45, 60, 90, 120, 150, 180].map((minutes) => (
-                      <option key={minutes} value={minutes}>
-                        {minutes} minuta
+                    {getDurationOptions().map((duration) => (
+                      <option key={duration} value={duration}>
+                        {duration} minuta
                       </option>
                     ))}
                   </select>
                   {errors.trajanje && <p className="mt-1 text-sm text-red-600">{errors.trajanje}</p>}
+                  <p className="mt-1 text-sm text-gray-500">
+                    Trajanje mora biti deljivo sa {worker?.time_slot} minuta
+                  </p>
                 </div>
                 {errors.general && (
                   <div className="p-3 rounded-lg bg-red-50 text-sm text-red-600">

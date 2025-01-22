@@ -22,8 +22,6 @@ const BookingPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [apiError, setApiError] = useState(null);
-
-  // Dodajemo funkcije za drag scroll
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
@@ -261,38 +259,6 @@ const BookingPage = () => {
     setErrors({});
   };
 
-  const handleScrollLeft = () => {
-    const container = document.querySelector('.scroll-container');
-    if (container) {
-      container.scrollBy({ left: -200, behavior: 'smooth' });
-    }
-  };
-
-  const handleScrollRight = () => {
-    const container = document.querySelector('.scroll-container');
-    if (container) {
-      container.scrollBy({ left: 200, behavior: 'smooth' });
-    }
-  };
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
   const steps = [
     { 
       number: 1, 
@@ -366,6 +332,114 @@ const BookingPage = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </span>
+    );
+  };
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const renderAppointments = () => {
+    if (appointments.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-500">
+          Nema dostupnih termina za izabrani datum
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        ref={scrollRef}
+        className="overflow-x-auto relative select-none bg-gray-50/50 rounded-lg pb-4"
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#22c55e #f3f4f6'
+        }}
+      >
+        <div className="flex space-x-3 min-w-max px-4 py-2">
+          {appointments.map((slot) => (
+            <button
+              key={slot.id}
+              onClick={() => setSelectedTime(slot)}
+              className={`
+                p-3 rounded-lg text-sm transition-all duration-200
+                ${selectedTime?.id === slot.id
+                  ? 'bg-green-600 text-white shadow-lg scale-105'
+                  : 'bg-white hover:bg-green-50 border border-gray-200'
+                }
+              `}
+            >
+              <div className="font-medium">{slot.start_time}</div>
+              <div className="text-xs mt-1 opacity-75">
+                {slot.duration} min
+              </div>
+              <div className="text-xs mt-1 font-medium">
+                {slot.price} RSD
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Prikaz detalja rezervacije
+  const renderBookingSummary = () => {
+    if (!selectedWorker || !selectedService || !selectedTime) return null;
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg space-y-3 text-sm">
+        <h3 className="font-semibold text-gray-900">Detalji rezervacije:</h3>
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Radnik:</span>
+            <span className="font-medium">{selectedWorker.ime} {selectedWorker.prezime}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Usluga:</span>
+            <span className="font-medium">{selectedService.naziv}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Datum:</span>
+            <span className="font-medium">
+              {selectedTime.date}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Vreme:</span>
+            <span className="font-medium">
+              {selectedTime.start_time} - {selectedTime.end_time}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Trajanje:</span>
+            <span className="font-medium">{selectedTime.duration} minuta</span>
+          </div>
+          <div className="flex justify-between pt-2 border-t border-gray-200">
+            <span className="font-medium">Ukupno:</span>
+            <span className="font-semibold text-green-600">{selectedTime.price} RSD</span>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -558,44 +632,7 @@ const BookingPage = () => {
                   min={new Date().toISOString().split('T')[0]}
                 />
                 <div className="relative bg-white rounded-xl p-4 shadow-sm">
-                  {/* Kontejner za termine */}
-                  <div className="relative">
-                    <div 
-                      ref={scrollRef}
-                      className="overflow-x-auto relative select-none bg-gray-50/50 rounded-lg pb-4"
-                      onMouseDown={handleMouseDown}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseUp}
-                      onMouseMove={handleMouseMove}
-                      style={{
-                        scrollbarWidth: 'thin',
-                        scrollbarColor: '#22c55e #f3f4f6'
-                      }}
-                    >
-                      <div className="flex space-x-3 min-w-max px-4 py-2">
-                        {appointments.map(time => (
-                          <button
-                            key={time.id}
-                            onClick={() => setSelectedTime(time)}
-                            className={`
-                              relative flex-shrink-0 px-6 py-4 rounded-xl text-center transition-all duration-200 
-                              min-w-[120px] group hover:-translate-y-0.5
-                              ${selectedTime?.id === time.id 
-                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' 
-                                : 'bg-white hover:bg-green-50 text-gray-900 hover:shadow-md'}
-                            `}
-                          >
-                            <span className="block text-lg font-medium">
-                              {time.start_time}
-                            </span>
-                            {selectedTime?.id === time.id && (
-                              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white rounded-full" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  {renderAppointments()}
                 </div>
               </div>
             )}
