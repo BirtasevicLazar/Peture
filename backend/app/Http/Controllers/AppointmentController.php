@@ -31,7 +31,7 @@ class AppointmentController extends Controller
                 ], 400);
             }
 
-            $timeSlot = $worker->time_slot;
+            $timeSlot = abs($worker->time_slot);
             $serviceDuration = $service->trajanje;
             
             $availableSlots = [];
@@ -117,11 +117,8 @@ class AppointmentController extends Controller
                 return response()->json([]);
             }
 
-            $timeSlot = $worker->time_slot;
+            $timeSlot = abs($worker->time_slot);
             $serviceDuration = $service->trajanje;
-            
-            // Izračunaj koliko time slotova je potrebno za uslugu
-            $requiredSlots = ceil($serviceDuration / $timeSlot);
             
             try {
                 $startTime = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->start_time, 0, 5));
@@ -133,14 +130,18 @@ class AppointmentController extends Controller
             $availableSlots = [];
             $currentTime = $startTime->copy();
             
-            while ($currentTime->copy()->addMinutes($timeSlot * $requiredSlots) <= $endTime) {
+            // Ako je time_slot negativan, koristi trajanje usluge za pomeranje
+            $incrementMinutes = $worker->time_slot < 0 ? $serviceDuration : $timeSlot;
+            
+            while ($currentTime->copy()->addMinutes($serviceDuration) <= $endTime) {
                 $slotEndTime = $currentTime->copy()->addMinutes($serviceDuration);
                 
-                // Proveri da li postoji preklapanje sa postojećim rezervacijama za sve potrebne slotove
+                // Proveri da li postoji preklapanje sa postojećim rezervacijama
                 $isAvailable = true;
                 $checkTime = $currentTime->copy();
                 
-                for ($i = 0; $i < $requiredSlots; $i++) {
+                // Proveri sve time slotove između početka i kraja usluge
+                while ($checkTime < $slotEndTime) {
                     $checkEndTime = $checkTime->copy()->addMinutes($timeSlot);
                     
                     $exists = Appointment::where('worker_id', $workerId)
@@ -162,13 +163,13 @@ class AppointmentController extends Controller
                 }
                 
                 if ($isAvailable) {
-                    // Ako je pauza definisana, proveri da li termin prelazi preko pauze
+                    // Proveri da li termin prelazi preko pauze
                     if ($schedule->has_break) {
                         $breakStart = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->break_start, 0, 5));
                         $breakEnd = Carbon::parse($date->format('Y-m-d') . ' ' . substr($schedule->break_end, 0, 5));
                         
                         if ($currentTime < $breakEnd && $slotEndTime > $breakStart) {
-                            $currentTime->addMinutes($timeSlot);
+                            $currentTime = $breakEnd->copy();
                             continue;
                         }
                     }
@@ -185,7 +186,8 @@ class AppointmentController extends Controller
                     ];
                 }
                 
-                $currentTime->addMinutes($timeSlot);
+                // Pomeri vreme za odgovarajući interval
+                $currentTime->addMinutes($incrementMinutes);
             }
             
             return response()->json($availableSlots);
@@ -217,7 +219,7 @@ class AppointmentController extends Controller
             $endTime = $startTime->copy()->addMinutes($service->trajanje);
             
             // Proveri da li je termin već zauzet za celo trajanje usluge
-            $timeSlot = $worker->time_slot;
+            $timeSlot = abs($worker->time_slot);
             $requiredSlots = ceil($service->trajanje / $timeSlot);
             
             $isAvailable = true;

@@ -29,7 +29,7 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email',
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,20,30'
+                'time_slot' => 'required|integer|in:-30,-20,-15,15,20,30'
             ]);
 
             $worker = Worker::create([
@@ -54,15 +54,24 @@ class WorkerController extends Controller
         }
     }
 
-    public function show(Worker $worker)
+    public function show($id)
     {
-        if ($worker->user_id !== Auth::id()) {
+        try {
+            $worker = Worker::with(['services', 'schedules'])->findOrFail($id);
+            
+            if ($worker->user_id !== auth()->id()) {
+                return response()->json([
+                    'message' => 'Nemate pristup ovom radniku'
+                ], 403);
+            }
+            
+            return response()->json($worker);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Nemate dozvolu za pristup ovom radniku'
-            ], 403);
+                'message' => 'Greška prilikom dohvatanja radnika',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($worker);
     }
 
     public function update(Request $request, Worker $worker)
@@ -79,8 +88,42 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email,' . $worker->id,
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|in:15,20,30'
+                'time_slot' => 'required|integer|in:-30,-20,-15,15,20,30'
             ]);
+
+            // Proveri da li radnik ima usluge
+            if ($worker->services()->exists()) {
+                $newTimeSlot = abs($validatedData['time_slot']);
+                $services = $worker->services()->get();
+                
+                // Proveri kompatibilnost sa svim uslugama
+                $incompatibleServices = [];
+                foreach ($services as $service) {
+                    // Proveri da li je trajanje usluge deljivo sa novim time slotom
+                    // ILI da li je novi time slot deljiv sa trajanjem usluge
+                    if (!($service->trajanje % $newTimeSlot === 0 || $newTimeSlot % $service->trajanje === 0)) {
+                        $incompatibleServices[] = [
+                            'naziv' => $service->naziv,
+                            'trajanje' => $service->trajanje
+                        ];
+                    }
+                }
+                
+                if (!empty($incompatibleServices)) {
+                    $serviceList = collect($incompatibleServices)
+                        ->map(function($service) {
+                            return "{$service['naziv']} ({$service['trajanje']} min)";
+                        })
+                        ->join(', ');
+                        
+                    return response()->json([
+                        'message' => "Ne možete promeniti na {$newTimeSlot} minuta jer nije kompatibilno sa trajanjem sledećih usluga: {$serviceList}",
+                        'errors' => [
+                            'time_slot' => ["Nije kompatibilno sa uslugama: {$serviceList}"]
+                        ]
+                    ], 422);
+                }
+            }
 
             $worker->update($validatedData);
 
