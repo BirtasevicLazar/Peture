@@ -14,9 +14,13 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Public booking routes
 Route::get('/salon/{slug}', function($slug) {
-    return \App\Models\User::with(['workers' => function($query) {
-        $query->with('services');
-    }])->where('slug', $slug)->firstOrFail();
+    $salon = \App\Models\User::where('slug', $slug)->first();
+    
+    if (!$salon) {
+        return response()->json(['message' => 'Salon nije pronađen'], 404);
+    }
+
+    return \App\Models\User::with(['workers.services'])->where('slug', $slug)->first();
 });
 
 Route::get('/appointments/available', [AppointmentController::class, 'getAvailableAppointments']);
