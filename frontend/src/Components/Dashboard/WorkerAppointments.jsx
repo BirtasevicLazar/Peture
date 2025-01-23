@@ -9,6 +9,17 @@ const WorkerAppointments = ({ workerId }) => {
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [createFormData, setCreateFormData] = useState({
+    customer_name: '',
+    customer_phone: '',
+    customer_email: '',
+    service_id: '',
+    duration: 30
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
   // Učitaj podatke kada se promeni datum ili radnik
   useEffect(() => {
@@ -113,6 +124,84 @@ const WorkerAppointments = ({ workerId }) => {
     return phone.replace(/(\d{3})(\d{3})(\d{3,4})/, '$1 $2 $3');
   };
 
+  const handleSlotClick = (timeSlot) => {
+    if (!data?.schedule?.is_working) return;
+    
+    const appointment = findAppointment(timeSlot);
+    if (appointment) {
+      setSelectedAppointment(appointment);
+      return;
+    }
+
+    if (isPastTimeSlot(timeSlot)) return;
+    if (isBreakTime(timeSlot)) return;
+
+    setSelectedSlot(timeSlot);
+    setShowCreateModal(true);
+    setCreateFormData({
+      customer_name: '',
+      customer_phone: '',
+      customer_email: '',
+      service_id: '',
+      duration: data?.worker?.time_slot || 30
+    });
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    setCreateError(null);
+    setIsSubmitting(true);
+
+    try {
+      const formData = {
+        ...createFormData,
+        worker_id: workerId,
+        start_time: `${format(selectedDate, 'yyyy-MM-dd')} ${selectedSlot}`
+      };
+
+      // Ako nije izabrana usluga, dodaj podatke za proizvoljnu uslugu
+      if (!formData.service_id) {
+        formData.custom_service_name = 'Termin bez usluge';
+        formData.custom_service_duration = formData.duration;
+        delete formData.duration;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/worker/appointments/create`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+
+      // Osveži listu termina
+      const updatedResponse = await axios.get(
+        `${import.meta.env.VITE_API_URL}/worker/${workerId}/appointments`,
+        {
+          params: {
+            date: format(selectedDate, 'yyyy-MM-dd')
+          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      
+      setData(updatedResponse.data);
+      setShowCreateModal(false);
+      setSelectedSlot(null);
+      setCreateFormData({
+        customer_name: '',
+        customer_phone: '',
+        customer_email: '',
+        service_id: '',
+        duration: data?.worker?.time_slot || 30
+      });
+    } catch (error) {
+      setCreateError(error.response?.data?.message || 'Došlo je do greške prilikom kreiranja termina');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -208,9 +297,11 @@ const WorkerAppointments = ({ workerId }) => {
                       ${isFullHour ? 'bg-gray-50/30' : ''}
                       ${!data.schedule.is_working ? 'opacity-50' : ''}
                       ${isPast ? 'bg-gray-50/50' : ''}
+                      ${!appointment && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
                       transition-colors duration-200
                     `}
                     style={{ height: '32px' }}
+                    onClick={() => handleSlotClick(timeSlot)}
                   >
                     <div className="w-16 flex-shrink-0 border-r border-gray-100 px-3 py-1.5">
                       <div className="text-xs font-medium text-gray-500">
@@ -263,6 +354,160 @@ const WorkerAppointments = ({ workerId }) => {
       ) : (
         <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center text-sm text-gray-500">
           Radnik ne radi na izabrani dan
+        </div>
+      )}
+
+      {/* Modal za kreiranje termina */}
+      {showCreateModal && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 transition-opacity duration-300"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 opacity-100"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Novi termin
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {format(selectedDate, "EEEE, d. MMMM yyyy.", { locale: sr })} u {selectedSlot}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateSubmit} className="p-6 space-y-6">
+              {createError && (
+                <div className="bg-red-50 text-red-800 rounded-lg p-4 text-sm">
+                  {createError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="service" className="block text-sm font-medium text-gray-700">
+                    Usluga (opciono)
+                  </label>
+                  <select
+                    id="service"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-lg"
+                    value={createFormData.service_id}
+                    onChange={(e) => {
+                      const serviceId = e.target.value;
+                      const selectedService = data?.worker?.services?.find(s => s.id === parseInt(serviceId));
+                      setCreateFormData(prev => ({
+                        ...prev,
+                        service_id: serviceId,
+                        duration: selectedService ? selectedService.trajanje : data?.worker?.time_slot || 30
+                      }));
+                    }}
+                  >
+                    <option value="">Bez usluge</option>
+                    {data?.worker?.services?.map(service => (
+                      <option key={service.id} value={service.id}>
+                        {service.naziv} ({service.trajanje} min) - {service.cena} RSD
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {!createFormData.service_id && (
+                  <div>
+                    <label htmlFor="duration" className="block text-sm font-medium text-gray-700">
+                      Trajanje termina (min)
+                    </label>
+                    <input
+                      type="number"
+                      id="duration"
+                      min={data?.worker?.time_slot}
+                      step={data?.worker?.time_slot}
+                      className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      value={createFormData.duration}
+                      onChange={(e) => setCreateFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                      required={!createFormData.service_id}
+                    />
+                    <p className="mt-1 text-sm text-gray-500">
+                      Trajanje mora biti deljivo sa {data?.worker?.time_slot} minuta
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700">
+                    Ime i prezime klijenta
+                  </label>
+                  <input
+                    type="text"
+                    id="customer_name"
+                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    value={createFormData.customer_name}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_name: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="customer_phone" className="block text-sm font-medium text-gray-700">
+                    Telefon
+                  </label>
+                  <input
+                    type="tel"
+                    id="customer_phone"
+                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    value={createFormData.customer_phone}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_phone: e.target.value }))}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="customer_email" className="block text-sm font-medium text-gray-700">
+                    Email (opciono)
+                  </label>
+                  <input
+                    type="email"
+                    id="customer_email"
+                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    value={createFormData.customer_email}
+                    onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_email: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Otkaži
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`
+                    px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-sm
+                    hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  `}
+                >
+                  {isSubmitting ? 'Kreiranje...' : 'Kreiraj termin'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

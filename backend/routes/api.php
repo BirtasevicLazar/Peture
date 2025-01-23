@@ -54,4 +54,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Appointments routes
     Route::get('/worker/{workerId}/appointments', [AppointmentController::class, 'getWorkerAppointments']);
+    Route::post('/worker/appointments/create', [AppointmentController::class, 'createWorkerAppointment']);
 });

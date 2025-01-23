@@ -286,8 +286,8 @@ class AppointmentController extends Controller
     public function getWorkerAppointments(Request $request, $workerId)
     {
         try {
-            // Dohvati radnika
-            $worker = Worker::findOrFail($workerId);
+            // Dohvati radnika sa njegovim uslugama
+            $worker = Worker::with('services')->findOrFail($workerId);
             
             // Dohvati datum iz query parametra ili koristi današnji datum
             $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
@@ -305,12 +305,25 @@ class AppointmentController extends Controller
                 ->orderBy('start_time', 'asc')
                 ->get()
                 ->map(function ($appointment) {
+                    $duration = null;
+                    $serviceName = null;
+
+                    if ($appointment->service) {
+                        $duration = $appointment->service->trajanje;
+                        $serviceName = $appointment->service->naziv;
+                    } else {
+                        $duration = $appointment->custom_service_duration;
+                        $serviceName = $appointment->custom_service_name ?: 'Termin bez usluge';
+                    }
+
                     return [
                         'id' => $appointment->id,
                         'start_time' => Carbon::parse($appointment->start_time)->format('H:i'),
                         'end_time' => Carbon::parse($appointment->end_time)->format('H:i'),
-                        'service_name' => $appointment->service->naziv,
-                        'service_duration' => $appointment->service->trajanje,
+                        'service_name' => $serviceName,
+                        'service_duration' => $duration,
+                        'service_price' => $appointment->service ? $appointment->service->cena : $appointment->custom_service_price,
+                        'is_custom_service' => !$appointment->service,
                         'customer_name' => $appointment->customer_name,
                         'customer_phone' => $appointment->customer_phone,
                         'customer_email' => $appointment->customer_email ?: null,
@@ -323,7 +336,15 @@ class AppointmentController extends Controller
                     'id' => $worker->id,
                     'ime' => $worker->ime,
                     'prezime' => $worker->prezime,
-                    'time_slot' => abs($worker->time_slot)
+                    'time_slot' => abs($worker->time_slot),
+                    'services' => $worker->services->map(function($service) {
+                        return [
+                            'id' => $service->id,
+                            'naziv' => $service->naziv,
+                            'trajanje' => $service->trajanje,
+                            'cena' => $service->cena
+                        ];
+                    })
                 ],
                 'schedule' => $schedule ? [
                     'start_time' => $schedule->start_time,
@@ -344,6 +365,178 @@ class AppointmentController extends Controller
             
             return response()->json([
                 'message' => 'Greška prilikom dohvatanja termina',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createWorkerAppointment(Request $request)
+    {
+        try {
+            \Log::info('Creating worker appointment:', [
+                'request_data' => $request->all()
+            ]);
+
+            $validated = $request->validate([
+                'worker_id' => 'required|exists:workers,id',
+                'service_id' => 'nullable|exists:services,id',
+                'custom_service_name' => 'required_without:service_id|string|nullable',
+                'custom_service_duration' => 'required_without:service_id|integer|min:1|nullable',
+                'custom_service_price' => 'nullable|numeric|min:0',
+                'start_time' => 'required|date_format:Y-m-d H:i',
+                'customer_name' => 'required|string',
+                'customer_phone' => 'required|string',
+                'customer_email' => 'nullable|email'
+            ]);
+
+            \Log::info('Validated data:', [
+                'validated' => $validated
+            ]);
+
+            $worker = Worker::findOrFail($validated['worker_id']);
+            
+            // Odredi trajanje termina
+            if (!empty($validated['service_id'])) {
+                $service = Service::findOrFail($validated['service_id']);
+                $duration = $service->trajanje;
+                \Log::info('Using service duration:', ['duration' => $duration]);
+            } else {
+                $duration = $validated['custom_service_duration'];
+                \Log::info('Using custom duration:', ['duration' => $duration]);
+                
+                // Proveri da li je trajanje deljivo sa time_slot-om radnika
+                if ($duration % $worker->time_slot !== 0) {
+                    \Log::warning('Invalid duration:', [
+                        'duration' => $duration,
+                        'time_slot' => $worker->time_slot
+                    ]);
+                    return response()->json([
+                        'message' => 'Trajanje termina mora biti deljivo sa vremenskim slotom radnika (' . $worker->time_slot . ' minuta)'
+                    ], 422);
+                }
+            }
+            
+            $startTime = Carbon::parse($validated['start_time']);
+            $endTime = $startTime->copy()->addMinutes($duration);
+            
+            \Log::info('Appointment time:', [
+                'start_time' => $startTime->format('Y-m-d H:i'),
+                'end_time' => $endTime->format('Y-m-d H:i')
+            ]);
+
+            // Proveri da li je termin već zauzet
+            $exists = Appointment::where('worker_id', $validated['worker_id'])
+                ->where('status', 'booked')
+                ->where(function($query) use ($startTime, $endTime) {
+                    $query->where(function($q) use ($startTime, $endTime) {
+                        $q->where('start_time', '<', $endTime)
+                          ->where('end_time', '>', $startTime);
+                    });
+                })
+                ->exists();
+            
+            if ($exists) {
+                \Log::warning('Appointment overlap detected');
+                return response()->json([
+                    'message' => 'Termin je već zauzet'
+                ], 400);
+            }
+
+            // Proveri da li termin prelazi radno vreme
+            $schedule = WorkSchedule::where('worker_id', $validated['worker_id'])
+                ->where('day_of_week', $startTime->dayOfWeek)
+                ->first();
+
+            if (!$schedule || !$schedule->is_working) {
+                \Log::warning('Worker not working:', [
+                    'schedule' => $schedule,
+                    'day_of_week' => $startTime->dayOfWeek
+                ]);
+                return response()->json([
+                    'message' => 'Radnik ne radi u izabrano vreme'
+                ], 400);
+            }
+
+            $workStart = Carbon::parse($startTime->format('Y-m-d') . ' ' . $schedule->start_time);
+            $workEnd = Carbon::parse($startTime->format('Y-m-d') . ' ' . $schedule->end_time);
+
+            if ($startTime < $workStart || $endTime > $workEnd) {
+                \Log::warning('Appointment outside working hours:', [
+                    'start_time' => $startTime->format('Y-m-d H:i'),
+                    'end_time' => $endTime->format('Y-m-d H:i'),
+                    'work_start' => $workStart->format('Y-m-d H:i'),
+                    'work_end' => $workEnd->format('Y-m-d H:i')
+                ]);
+                return response()->json([
+                    'message' => 'Termin mora biti unutar radnog vremena'
+                ], 400);
+            }
+
+            // Proveri pauzu ako postoji
+            if ($schedule->has_break) {
+                $breakStart = Carbon::parse($startTime->format('Y-m-d') . ' ' . $schedule->break_start);
+                $breakEnd = Carbon::parse($startTime->format('Y-m-d') . ' ' . $schedule->break_end);
+
+                if ($startTime < $breakEnd && $endTime > $breakStart) {
+                    \Log::warning('Appointment overlaps with break:', [
+                        'start_time' => $startTime->format('Y-m-d H:i'),
+                        'end_time' => $endTime->format('Y-m-d H:i'),
+                        'break_start' => $breakStart->format('Y-m-d H:i'),
+                        'break_end' => $breakEnd->format('Y-m-d H:i')
+                    ]);
+                    return response()->json([
+                        'message' => 'Termin se preklapa sa pauzom'
+                    ], 400);
+                }
+            }
+
+            try {
+                $appointmentData = [
+                    'user_id' => $worker->user_id,
+                    'worker_id' => $validated['worker_id'],
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'customer_name' => $validated['customer_name'],
+                    'customer_phone' => $validated['customer_phone'],
+                    'customer_email' => $validated['customer_email'] ?? null,
+                    'status' => 'booked'
+                ];
+
+                if (!empty($validated['service_id'])) {
+                    $appointmentData['service_id'] = $validated['service_id'];
+                } else {
+                    $appointmentData['custom_service_name'] = $validated['custom_service_name'];
+                    $appointmentData['custom_service_duration'] = $validated['custom_service_duration'];
+                    $appointmentData['custom_service_price'] = $validated['custom_service_price'] ?? 0;
+                }
+
+                $appointment = Appointment::create($appointmentData);
+
+                \Log::info('Appointment created successfully:', [
+                    'appointment_id' => $appointment->id
+                ]);
+
+                return response()->json([
+                    'message' => 'Termin uspešno kreiran',
+                    'appointment' => $appointment
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Error creating appointment record:', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            \Log::error('Error in createWorkerAppointment:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
+            return response()->json([
+                'message' => 'Greška prilikom kreiranja termina',
                 'error' => $e->getMessage()
             ], 500);
         }
