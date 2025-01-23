@@ -51,4 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/work-schedules', [WorkScheduleController::class, 'store']);
     Route::put('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'update']);
     Route::delete('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'destroy']);
+
+    // Appointments routes
+    Route::get('/worker/{workerId}/appointments', [AppointmentController::class, 'getWorkerAppointments']);
 });

@@ -282,4 +282,64 @@ class AppointmentController extends Controller
             ], 500);
         }
     }
+
+    public function getWorkerAppointments(Request $request, $workerId)
+    {
+        try {
+            // Dohvati radnika
+            $worker = Worker::findOrFail($workerId);
+            
+            // Dohvati datum iz query parametra ili koristi današnji datum
+            $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
+            
+            // Dohvati raspored za taj dan
+            $schedule = WorkSchedule::where('worker_id', $workerId)
+                ->where('day_of_week', $date->dayOfWeek)
+                ->first();
+            
+            // Dohvati termine za taj dan
+            $appointments = Appointment::where('worker_id', $workerId)
+                ->where('status', 'booked')
+                ->whereDate('start_time', $date)
+                ->with(['service'])
+                ->orderBy('start_time', 'asc')
+                ->get()
+                ->map(function ($appointment) {
+                    return [
+                        'id' => $appointment->id,
+                        'start_time' => Carbon::parse($appointment->start_time)->format('H:i'),
+                        'end_time' => Carbon::parse($appointment->end_time)->format('H:i'),
+                        'service_name' => $appointment->service->naziv,
+                        'service_duration' => $appointment->service->trajanje,
+                        'customer_name' => $appointment->customer_name,
+                        'customer_phone' => $appointment->customer_phone,
+                        'status' => $appointment->status
+                    ];
+                });
+
+            return response()->json([
+                'worker' => [
+                    'id' => $worker->id,
+                    'ime' => $worker->ime,
+                    'prezime' => $worker->prezime,
+                    'time_slot' => abs($worker->time_slot)
+                ],
+                'schedule' => $schedule ? [
+                    'start_time' => $schedule->start_time,
+                    'end_time' => $schedule->end_time,
+                    'has_break' => $schedule->has_break,
+                    'break_start' => $schedule->break_start,
+                    'break_end' => $schedule->break_end,
+                    'is_working' => $schedule->is_working
+                ] : null,
+                'appointments' => $appointments,
+                'date' => $date->format('Y-m-d')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Greška prilikom dohvatanja termina',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 } 

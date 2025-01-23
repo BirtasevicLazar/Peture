@@ -4,6 +4,7 @@ import Workers from './Workers';
 import Salon from './Salon';
 import Services from './Services';
 import WorkerSchedule from './WorkerSchedule';
+import WorkerAppointments from './WorkerAppointments';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
@@ -124,8 +125,30 @@ const Dashboard = () => {
             <WorkerSchedule workerId={selectedWorker?.id} />
           </div>
         );
+      } else if (activeSubmenu === 'appointments') {
+        return (
+          <div>
+            <div className="mb-6 flex items-center">
+              <button
+                onClick={() => {
+                  setActiveComponent('workers');
+                  setSelectedWorker(null);
+                  setActiveSubmenu(null);
+                }}
+                className="mr-4 text-gray-500 hover:text-gray-700"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Termini - {selectedWorker?.ime} {selectedWorker?.prezime}
+              </h1>
+            </div>
+            <WorkerAppointments workerId={selectedWorker?.id} />
+          </div>
+        );
       }
-      // Add other submenu components here (schedule, appointments)
       return null;
     }
 
