@@ -29,7 +29,7 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email',
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|integer|in:-30,-20,-15,15,20,30'
+                'time_slot' => 'required|integer|in:-60,-30,-20,-15,-10,10,15,20,30,60'
             ]);
 
             $worker = Worker::create([
@@ -88,7 +88,7 @@ class WorkerController extends Controller
                 'prezime' => 'required|string|max:100',
                 'email' => 'required|email|unique:workers,email,' . $worker->id,
                 'telefon' => 'required|string|max:20',
-                'time_slot' => 'required|integer|in:-30,-20,-15,15,20,30'
+                'time_slot' => 'required|integer|in:-60,-30,-20,-15,-10,10,15,20,30,60'
             ]);
 
             // Proveri da li radnik ima usluge

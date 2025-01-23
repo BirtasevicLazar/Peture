@@ -99,8 +99,26 @@ const WorkerAppointments = ({ workerId }) => {
   // Izračunaj visinu termina na osnovu trajanja
   const calculateAppointmentHeight = (appointment) => {
     if (!data?.worker?.time_slot) return 40;
+    
+    const timeSlot = Math.abs(data.worker.time_slot);
     const duration = appointment.service_duration;
-    return Math.max(40, (duration / data.worker.time_slot) * 32);
+    const baseRowHeight = 40; // Osnovna visina reda
+    
+    // Računamo koliko redova zauzima termin
+    const numberOfSlots = Math.ceil(duration / timeSlot);
+    
+    // Za različite vremenske slotove koristimo različite faktore skaliranja
+    let scaleFactor = 1;
+    if (timeSlot <= 10) {
+      scaleFactor = 0.8; // Manji faktor za kraće slotove
+    } else if (timeSlot >= 60) {
+      scaleFactor = 1.5; // Veći faktor za duže slotove
+    } else if (timeSlot >= 30) {
+      scaleFactor = 1.2; // Srednji faktor za srednje slotove
+    }
+    
+    // Računamo finalnu visinu
+    return Math.max(baseRowHeight, numberOfSlots * baseRowHeight * scaleFactor);
   };
 
   // Proveri da li je datum u prošlosti
@@ -300,7 +318,11 @@ const WorkerAppointments = ({ workerId }) => {
                       ${!appointment && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
                       transition-colors duration-200
                     `}
-                    style={{ height: '32px' }}
+                    style={{ 
+                      height: `${Math.abs(data.worker.time_slot) <= 10 ? '32px' : 
+                              Math.abs(data.worker.time_slot) >= 60 ? '60px' : 
+                              Math.abs(data.worker.time_slot) >= 30 ? '48px' : '40px'}`
+                    }}
                     onClick={() => handleSlotClick(timeSlot)}
                   >
                     <div className="w-16 flex-shrink-0 border-r border-gray-100 px-3 py-1.5">
@@ -318,12 +340,13 @@ const WorkerAppointments = ({ workerId }) => {
                           onClick={() => setSelectedAppointment(appointment)}
                           className={`
                             absolute left-0 right-0 mx-1 rounded-md border overflow-hidden shadow-sm cursor-pointer
-                            transition-all duration-200 hover:scale-[1.02] hover:shadow-md
+                            transition-all duration-300 hover:scale-[1.02] hover:shadow-md
                             ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
                           `}
                           style={{
                             height: `${calculateAppointmentHeight(appointment)}px`,
-                            zIndex: 10
+                            zIndex: 10,
+                            transition: 'height 0.3s ease-in-out'
                           }}
                         >
                           <div className="p-1.5 h-full flex flex-col justify-between">

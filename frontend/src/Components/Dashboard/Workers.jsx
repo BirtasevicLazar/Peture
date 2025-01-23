@@ -452,7 +452,7 @@ const Workers = ({ onWorkerSelect }) => {
                               </div>
                             )}
                             <div className="mt-4 space-y-3">
-                              {[15, 20, 30].map(value => (
+                              {[10, 15, 20, 30, 60].map(value => (
                                 <label
                                   key={value}
                                   className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none
@@ -475,9 +475,11 @@ const Workers = ({ onWorkerSelect }) => {
                                       <div className="text-sm">
                                         <p className="font-medium text-gray-900">{value} minuta</p>
                                         <p className="text-gray-500">
-                                          {value === 15 && "Najbolje za kratke usluge"}
+                                          {value === 10 && "Za najkraće usluge"}
+                                          {value === 15 && "Za kratke usluge"}
                                           {value === 20 && "Idealno za većinu usluga"}
                                           {value === 30 && "Za duže tretmane"}
+                                          {value === 60 && "Za dugačke tretmane"}
                                         </p>
                                       </div>
                                     </div>
@@ -500,7 +502,7 @@ const Workers = ({ onWorkerSelect }) => {
                               Termini se automatski prilagođavaju trajanju svake usluge.
                             </p>
                             <div className="mt-4 space-y-3">
-                              {[-15, -20, -30].map(value => (
+                              {[-10, -15, -20, -30, -60].map(value => (
                                 <label
                                   key={value}
                                   className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none
@@ -523,9 +525,11 @@ const Workers = ({ onWorkerSelect }) => {
                                       <div className="text-sm">
                                         <p className="font-medium text-gray-900">{Math.abs(value)} minuta</p>
                                         <p className="text-gray-500">
+                                          {value === -10 && "Za najkraće usluge sa prilagođenim trajanjem"}
                                           {value === -15 && "Za precizno praćenje kraćih usluga"}
                                           {value === -20 && "Optimalno za mešavinu različitih usluga"}
                                           {value === -30 && "Za salone sa pretežno dužim tretmanima"}
+                                          {value === -60 && "Za salone sa dugačkim tretmanima"}
                                         </p>
                                       </div>
                                     </div>
