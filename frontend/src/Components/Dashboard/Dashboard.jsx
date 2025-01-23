@@ -65,17 +65,19 @@ const Dashboard = () => {
     setActiveComponent('worker-details'); // Add this new state to handle worker details view
   };
 
+  const handleWorkerSelect = (worker) => {
+    setSelectedWorker(worker);
+    setActiveSubmenu('appointments'); // Postavljamo odmah na 'appointments'
+    setActiveComponent('worker-details');
+  };
+
   const renderMainContent = () => {
     if (activeComponent === 'salon') {
       return <Salon />;
     }
 
     if (activeComponent === 'workers') {
-      return <Workers onWorkerSelect={(worker) => {
-        setSelectedWorker(worker);
-        setActiveSubmenu(null);
-        setActiveComponent('worker-details');
-      }} />;
+      return <Workers onWorkerSelect={handleWorkerSelect} />;
     }
 
     if (activeComponent === 'worker-details') {
