@@ -313,6 +313,7 @@ class AppointmentController extends Controller
                         'service_duration' => $appointment->service->trajanje,
                         'customer_name' => $appointment->customer_name,
                         'customer_phone' => $appointment->customer_phone,
+                        'customer_email' => $appointment->customer_email ?: null,
                         'status' => $appointment->status
                     ];
                 });
@@ -336,6 +337,11 @@ class AppointmentController extends Controller
                 'date' => $date->format('Y-m-d')
             ]);
         } catch (\Exception $e) {
+            \Log::error('Error fetching appointments:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'message' => 'Greška prilikom dohvatanja termina',
                 'error' => $e->getMessage()

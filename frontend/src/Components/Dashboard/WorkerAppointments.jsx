@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { format, addDays, subDays, parseISO } from 'date-fns';
+import { format, addDays, subDays, parseISO, isSameDay } from 'date-fns';
 import { sr } from 'date-fns/locale';
 
 const WorkerAppointments = ({ workerId }) => {
@@ -8,6 +8,7 @@ const WorkerAppointments = ({ workerId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   // Učitaj podatke kada se promeni datum ili radnik
   useEffect(() => {
@@ -88,7 +89,28 @@ const WorkerAppointments = ({ workerId }) => {
   const calculateAppointmentHeight = (appointment) => {
     if (!data?.worker?.time_slot) return 40;
     const duration = appointment.service_duration;
-    return Math.max(40, (duration / data.worker.time_slot) * 30);
+    return Math.max(40, (duration / data.worker.time_slot) * 32);
+  };
+
+  // Proveri da li je datum u prošlosti
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date < today;
+  };
+
+  // Proveri da li je vremenski slot prošao
+  const isPastTimeSlot = (timeSlot) => {
+    if (!isSameDay(selectedDate, new Date())) return false;
+    const now = new Date();
+    const [hours, minutes] = timeSlot.split(':').map(Number);
+    return now.getHours() > hours || (now.getHours() === hours && now.getMinutes() > minutes);
+  };
+
+  // Formatiranje broja telefona
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    return phone.replace(/(\d{3})(\d{3})(\d{3,4})/, '$1 $2 $3');
   };
 
   if (isLoading) {
@@ -101,16 +123,12 @@ const WorkerAppointments = ({ workerId }) => {
 
   if (error) {
     return (
-      <div className="bg-red-50 p-4 rounded-lg">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">{error}</h3>
-          </div>
+      <div className="bg-red-50/50 backdrop-blur-sm p-4 rounded-xl">
+        <div className="flex items-center space-x-3">
+          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          <p className="text-sm font-medium text-red-800">{error}</p>
         </div>
       </div>
     );
@@ -129,35 +147,40 @@ const WorkerAppointments = ({ workerId }) => {
   return (
     <div className="h-full pb-16 lg:pb-0">
       {/* Navigacija po datumima */}
-      <div className="bg-white px-3 py-2 rounded-lg shadow-sm mb-3 sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-sm px-3 py-2.5 rounded-xl shadow-sm mb-3 sticky top-0 z-20">
         <div className="flex items-center justify-between gap-2">
           <button
             onClick={() => setSelectedDate(prev => subDays(prev, 1))}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100/80 active:scale-95"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           
-          <div className="text-center">
-            <div className="text-sm font-medium text-gray-900">
+          <div className="text-center flex-1">
+            <div className="text-sm font-medium text-gray-600">
               {format(selectedDate, "EEEE", { locale: sr })}
             </div>
             <div className="text-lg font-semibold text-gray-900">
               {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
             </div>
             {data?.schedule && (
-              <div className="text-xs text-gray-500 mt-0.5">
-                {data.schedule.start_time} - {data.schedule.end_time}
-                {data.schedule.has_break && ` (Pauza: ${data.schedule.break_start} - ${data.schedule.break_end})`}
+              <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-center gap-2">
+                <span>{data.schedule.start_time} - {data.schedule.end_time}</span>
+                {data.schedule.has_break && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                    <span>Pauza: {data.schedule.break_start} - {data.schedule.break_end}</span>
+                  </>
+                )}
               </div>
             )}
           </div>
           
           <button
             onClick={() => setSelectedDate(prev => addDays(prev, 1))}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200 active:scale-95"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -168,13 +191,14 @@ const WorkerAppointments = ({ workerId }) => {
 
       {/* Grid sa terminima */}
       {data?.schedule ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-[300px]">
               {timeSlots.map((timeSlot, index) => {
                 const appointment = findAppointment(timeSlot);
                 const isBreak = isBreakTime(timeSlot);
                 const isFullHour = timeSlot.endsWith(':00');
+                const isPast = isPastTimeSlot(timeSlot);
 
                 return (
                   <div
@@ -183,22 +207,29 @@ const WorkerAppointments = ({ workerId }) => {
                       flex border-b border-gray-100 relative
                       ${isFullHour ? 'bg-gray-50/30' : ''}
                       ${!data.schedule.is_working ? 'opacity-50' : ''}
+                      ${isPast ? 'bg-gray-50/50' : ''}
+                      transition-colors duration-200
                     `}
-                    style={{ height: '30px' }}
+                    style={{ height: '32px' }}
                   >
-                    <div className="w-16 flex-shrink-0 border-r border-gray-100 px-2 py-1">
+                    <div className="w-16 flex-shrink-0 border-r border-gray-100 px-3 py-1.5">
                       <div className="text-xs font-medium text-gray-500">
                         {timeSlot}
                       </div>
                     </div>
                     <div className="flex-1 relative">
                       {isBreak ? (
-                        <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
+                        <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
                           <span className="text-xs text-gray-400">Pauza</span>
                         </div>
                       ) : appointment && (
                         <div
-                          className="absolute left-0 right-0 mx-1 bg-green-50 rounded border border-green-100 overflow-hidden shadow-sm"
+                          onClick={() => setSelectedAppointment(appointment)}
+                          className={`
+                            absolute left-0 right-0 mx-1 rounded-md border overflow-hidden shadow-sm cursor-pointer
+                            transition-all duration-200 hover:scale-[1.02] hover:shadow-md
+                            ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
+                          `}
                           style={{
                             height: `${calculateAppointmentHeight(appointment)}px`,
                             zIndex: 10
@@ -206,16 +237,16 @@ const WorkerAppointments = ({ workerId }) => {
                         >
                           <div className="p-1.5 h-full flex flex-col justify-between">
                             <div>
-                              <div className="text-xs font-medium text-green-800 truncate">
+                              <div className={`text-xs font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
                                 {appointment.service_name}
                               </div>
-                              <div className="text-xs text-green-700 truncate">
+                              <div className={`text-xs truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
                                 {appointment.customer_name}
                               </div>
                             </div>
                             {calculateAppointmentHeight(appointment) >= 60 && (
-                              <div className="text-xs text-green-600 flex items-center justify-between">
-                                <span className="truncate">{appointment.customer_phone}</span>
+                              <div className={`text-xs flex items-center justify-between ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                <span className="truncate">{formatPhoneNumber(appointment.customer_phone)}</span>
                                 <span>{appointment.start_time} - {appointment.end_time}</span>
                               </div>
                             )}
@@ -230,8 +261,127 @@ const WorkerAppointments = ({ workerId }) => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg p-4 text-center text-sm text-gray-500">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center text-sm text-gray-500">
           Radnik ne radi na izabrani dan
+        </div>
+      )}
+
+      {/* Modal za prikaz detalja termina */}
+      {selectedAppointment && (
+        <div 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 transition-opacity duration-300" 
+          onClick={() => setSelectedAppointment(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 opacity-100" 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header sa vremenom termina */}
+            <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium text-green-800">
+                      {format(selectedDate, "EEEE", { locale: sr })}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-green-900">
+                    {selectedAppointment.start_time} - {selectedAppointment.end_time}
+                  </div>
+                  <div className="text-sm text-green-700 mt-0.5">
+                    {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedAppointment(null)}
+                  className="text-green-600 hover:text-green-700 transition-colors p-1 hover:bg-green-100 rounded-lg"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Usluga */}
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-500">Usluga</div>
+                  <div className="text-base font-semibold text-gray-900 mt-0.5">{selectedAppointment.service_name}</div>
+                  <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{selectedAppointment.service_duration} minuta</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Klijent */}
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-500">Klijent</div>
+                  <div className="text-base font-semibold text-gray-900 mt-0.5">{selectedAppointment.customer_name}</div>
+                  
+                  <div className="mt-3 flex flex-col sm:flex-row gap-2">
+                    <a 
+                      href={`tel:${selectedAppointment.customer_phone}`}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      {formatPhoneNumber(selectedAppointment.customer_phone)}
+                    </a>
+                    
+                    {selectedAppointment.customer_email && (
+                      <a 
+                        href={`mailto:${selectedAppointment.customer_email}`}
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {selectedAppointment.customer_email}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-500">Status</div>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Zakazan
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
