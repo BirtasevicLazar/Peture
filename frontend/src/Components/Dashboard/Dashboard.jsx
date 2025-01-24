@@ -118,13 +118,7 @@ const Dashboard = () => {
                 }}
                 className="mr-4 text-gray-500 hover:text-gray-700"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
               </button>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Usluge - {selectedWorker?.ime} {selectedWorker?.prezime}
-              </h1>
             </div>
             <Services workerId={selectedWorker?.id} />
           </div>
@@ -141,13 +135,7 @@ const Dashboard = () => {
                 }}
                 className="mr-4 text-gray-500 hover:text-gray-700"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Radno vreme - {selectedWorker?.ime} {selectedWorker?.prezime}
-              </h1>
+              </button>  
             </div>
             <WorkerSchedule workerId={selectedWorker?.id} />
           </div>
@@ -164,13 +152,7 @@ const Dashboard = () => {
                 }}
                 className="mr-4 text-gray-500 hover:text-gray-700"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
               </button>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Termini - {selectedWorker?.ime} {selectedWorker?.prezime}
-              </h1>
             </div>
             <WorkerAppointments workerId={selectedWorker?.id} />
           </div>
@@ -414,11 +396,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b border-gray-200 fixed w-full top-0 z-40">
+      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/80 fixed w-full top-0 z-40">
         <div className="px-4">
-          <div className="flex justify-between h-14">
+          <div className="flex justify-between h-16">
             <div className="flex items-center">
               {selectedWorker ? (
                 <button
@@ -427,7 +409,8 @@ const Dashboard = () => {
                     setSelectedWorker(null);
                     setActiveSubmenu(null);
                   }}
-                  className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
+                  className="lg:hidden inline-flex items-center p-2 rounded-xl text-gray-400 hover:text-gray-500 
+                           hover:bg-gray-100/80 transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -435,22 +418,26 @@ const Dashboard = () => {
                 </button>
               ) : null}
               <div className="flex-shrink-0 flex items-center ml-2">
-                <span className="text-xl font-bold text-green-600">Peture</span>
+                <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                  Peture
+                </span>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
               {selectedWorker && (
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg">
                   {selectedWorker.ime} {selectedWorker.prezime}
                 </span>
               )}
               <button
                 onClick={handleLogout}
-                className="lg:hidden inline-flex items-center p-2 rounded-md text-gray-400 hover:text-gray-500"
+                className="lg:hidden inline-flex items-center p-2 rounded-xl text-gray-400 hover:text-gray-500 
+                         hover:bg-gray-100/80 transition-colors"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
             </div>
@@ -458,11 +445,11 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <div className="flex h-screen pt-14">
+      <div className="flex h-screen pt-16">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden lg:block w-64 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="hidden lg:block w-72 bg-white/80 backdrop-blur-sm border-r border-gray-200/80 overflow-y-auto">
           <div className="flex flex-col h-full justify-between">
-            <nav className="mt-5 px-2 space-y-1">
+            <nav className="mt-6 px-3 space-y-2">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
@@ -473,14 +460,14 @@ const Dashboard = () => {
                   }}
                   className={`${
                     activeComponent === item.id && !selectedWorker
-                      ? 'bg-green-50 text-green-600'
+                      ? 'bg-gradient-to-r from-green-50 to-green-100/50 text-green-600 shadow-sm'
                       : 'text-gray-600 hover:bg-gray-50'
-                  } group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  } group w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200`}
                 >
                   <svg
                     className={`${
                       activeComponent === item.id && !selectedWorker ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
-                    } mr-3 h-5 w-5`}
+                    } mr-3 h-5 w-5 transition-colors duration-200`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -493,18 +480,34 @@ const Dashboard = () => {
 
               {/* Worker Submenu */}
               {selectedWorker && (
-                <div className="ml-4 mt-2 border-l-2 border-green-100">
-                  <div className="py-2 px-2 text-sm font-medium text-gray-500">
-                    {selectedWorker.ime} {selectedWorker.prezime}
+                <div className="mt-4 space-y-2">
+                  <div className="px-3 py-2 text-sm font-medium text-gray-900 bg-gradient-to-r from-gray-50 to-gray-100/50 
+                               rounded-xl border border-gray-200/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span>Radnik</span>
+                    </div>
+                    <p className="font-medium text-gray-900">
+                      {selectedWorker.ime} {selectedWorker.prezime}
+                    </p>
                   </div>
                   {workerSubmenuItems.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => handleSubmenuClick(item.id)}
-                      className="w-full flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
+                      className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                        ${activeSubmenu === item.id
+                          ? 'bg-gradient-to-r from-green-50 to-green-100/50 text-green-600 shadow-sm'
+                          : 'text-gray-600 hover:bg-gray-50'
+                        }`}
                     >
                       <svg
-                        className="text-gray-400 group-hover:text-gray-500 mr-3 h-5 w-5"
+                        className={`mr-3 h-5 w-5 ${
+                          activeSubmenu === item.id ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
+                        } transition-colors duration-200`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -518,18 +521,20 @@ const Dashboard = () => {
               )}
             </nav>
             
-            <div className="p-4 border-t border-gray-200 mt-auto">
+            <div className="p-4 border-t border-gray-200/80">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 
+                         bg-white hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-100"
               >
                 <svg
-                  className="mr-3 h-5 w-5"
+                  className="w-5 h-5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 Odjavi se
               </button>
@@ -538,7 +543,7 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-8 pb-20 lg:pb-8">
+        <main className="flex-1 overflow-y-auto bg-transparent p-4 lg:p-8 pb-20 lg:pb-8">
           <div className="max-w-7xl mx-auto">
             {renderMainContent()}
           </div>
@@ -546,7 +551,7 @@ const Dashboard = () => {
 
         {/* Mobile Bottom Navigation - hidden on desktop */}
         {!selectedWorker ? (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40">
             <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
               {menuItems.map((item) => (
                 <button
@@ -555,7 +560,7 @@ const Dashboard = () => {
                     setActiveComponent(item.id);
                     setSelectedWorker(null);
                   }}
-                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-lg transition-colors
+                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-xl transition-all duration-200
                     ${activeComponent === item.id
                       ? 'text-green-600 bg-green-50'
                       : 'text-gray-600 hover:bg-gray-50'
@@ -575,13 +580,13 @@ const Dashboard = () => {
             </div>
           </div>
         ) : (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40">
             <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
               {workerSubmenuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleSubmenuClick(item.id)}
-                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-lg transition-colors
+                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-xl transition-all duration-200
                     ${activeSubmenu === item.id
                       ? 'text-green-600 bg-green-50'
                       : 'text-gray-600 hover:bg-gray-50'
@@ -605,52 +610,69 @@ const Dashboard = () => {
 
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div className="fixed inset-0 z-50">
+          {/* Background overlay */}
+          <div className="fixed inset-0 bg-gray-500/75 backdrop-blur-sm transition-opacity" />
           
-          <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl transition-all sm:w-full sm:max-w-md">
-            <div className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                  <svg 
-                    className="h-6 w-6 text-red-600" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    strokeWidth="1.5" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Potvrda odjave
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
-                  </p>
+          {/* Modal container sa perfektnim centriranjem */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            {/* Modal content */}
+            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl transform transition-all 
+                          border border-gray-200/50 overflow-hidden">
+              {/* Modal header */}
+              <div className="bg-gradient-to-r from-red-50 to-red-100/50 px-6 py-5 border-b border-gray-200/50">
+                <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 
+                                  shadow-sm border border-red-200/50">
+                      <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Potvrda odjave
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-600">
+                      Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
+                    </p>
+                  </div>
                 </div>
               </div>
               
-              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutModal(false)}
-                  className="inline-flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50 sm:w-auto"
-                >
-                  Otkaži
-                </button>
-                <button
-                  type="button"
-                  onClick={confirmLogout}
-                  className="inline-flex w-full justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto"
-                >
-                  Odjavi se
-                </button>
+              {/* Modal footer */}
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200/50">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutModal(false)}
+                    className="inline-flex justify-center items-center px-4 py-2.5 text-sm font-medium text-gray-700 
+                             bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none 
+                             focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200
+                             shadow-sm hover:shadow-md"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Otkaži
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmLogout}
+                    className="inline-flex justify-center items-center px-4 py-2.5 text-sm font-medium text-white 
+                             bg-red-600 rounded-xl hover:bg-red-700 focus:outline-none focus:ring-2 
+                             focus:ring-offset-2 focus:ring-red-500 transition-all duration-200
+                             shadow-sm hover:shadow-md"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Odjavi se
+                  </button>
+                </div>
               </div>
             </div>
           </div>

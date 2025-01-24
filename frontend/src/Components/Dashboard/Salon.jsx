@@ -151,17 +151,20 @@ const Salon = () => {
   return (
     <div className="h-full pb-20 lg:pb-0">
       {/* Header */}
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm mb-6">
+      <div className="bg-gradient-to-r from-green-400 to-blue-500 p-6 rounded-2xl shadow-lg mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Informacije o salonu</h2>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white">Informacije o salonu</h2>
+            <p className="text-green-50 mt-1">Upravljajte informacijama o vašem salonu</p>
+          </div>
           <button
             onClick={handleOpenModal}
-            className="inline-flex items-center justify-center px-4 py-2.5 border border-transparent 
-                     text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 
+            className="inline-flex items-center justify-center px-6 py-3 border border-transparent 
+                     text-sm font-medium rounded-xl text-green-600 bg-white hover:bg-green-50 
                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 
-                     transition-colors duration-200 shadow-sm"
+                     transition-all duration-200 shadow-md"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                     d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
@@ -171,28 +174,74 @@ const Salon = () => {
       </div>
 
       {/* Salon Info Card */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
-        <div className="p-4 sm:p-6 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Naziv salona</label>
-              <p className="mt-1 text-base font-medium text-gray-900">{salonData.salon_name || '-'}</p>
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm rounded-2xl overflow-hidden mb-8 border border-gray-100">
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-500">Naziv salona</label>
+                <p className="mt-1 text-lg text-gray-900">{salonData.salon_name || '-'}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</label>
-              <p className="mt-1 text-base text-gray-900">{salonData.email || '-'}</p>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-500">Email</label>
+                <p className="mt-1 text-lg text-gray-900">{salonData.email || '-'}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Adresa</label>
-              <p className="mt-1 text-base text-gray-900">{salonData.address || '-'}</p>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-500">Adresa</label>
+                <p className="mt-1 text-lg text-gray-900">{salonData.address || '-'}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Grad</label>
-              <p className="mt-1 text-base text-gray-900">{salonData.city || '-'}</p>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-500">Grad</label>
+                <p className="mt-1 text-lg text-gray-900">{salonData.city || '-'}</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</label>
-              <p className="mt-1 text-base text-gray-900">{salonData.phone || '-'}</p>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-500">Telefon</label>
+                <p className="mt-1 text-lg text-gray-900">{salonData.phone || '-'}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -203,98 +252,187 @@ const Salon = () => {
 
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Izmeni podatke o salonu</h2>
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setErrors({});
-                  }}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-500 bg-opacity-75">
+          <div className="min-h-screen px-4 text-center">
+            {/* Vertikalno centriranje */}
+            <div className="flex items-center justify-center min-h-screen">
+              {/* Modal sadržaj */}
+              <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all mx-auto">
+                {/* Modal header sa gradijentom */}
+                <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        Izmeni podatke o salonu
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Ažurirajte informacije o vašem salonu
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setErrors({});
+                      }}
+                      className="rounded-full p-1 text-gray-400 hover:text-gray-500 hover:bg-gray-100 
+                               focus:outline-none transition-colors duration-200"
+                    >
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal body */}
+                <div className="p-6">
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Naziv salona <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="salon_name"
+                        value={editData.salon_name || ''}
+                        onChange={handleInputChange}
+                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
+                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                        placeholder="Unesite naziv salona"
+                      />
+                      {errors.salon_name && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {errors.salon_name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={editData.email || ''}
+                        onChange={handleInputChange}
+                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
+                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                        placeholder="primer@email.com"
+                      />
+                      {errors.email && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Adresa <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="address"
+                        value={editData.address || ''}
+                        onChange={handleInputChange}
+                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
+                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                        placeholder="Unesite adresu"
+                      />
+                      {errors.address && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {errors.address}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Grad <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={editData.city || ''}
+                        onChange={handleInputChange}
+                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
+                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                        placeholder="Unesite grad"
+                      />
+                      {errors.city && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {errors.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Telefon <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="phone"
+                        value={editData.phone || ''}
+                        onChange={handleInputChange}
+                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
+                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                        placeholder="Unesite broj telefona"
+                      />
+                      {errors.phone && (
+                        <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {errors.phone}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Modal footer */}
+                    <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          setErrors({});
+                        }}
+                        className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 
+                                 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                                 focus:ring-green-500 transition-all duration-200"
+                      >
+                        Otkaži
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl 
+                                 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                                 focus:ring-green-500 transition-all duration-200"
+                      >
+                        Sačuvaj
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Naziv salona</label>
-                  <input
-                    type="text"
-                    name="salon_name"
-                    value={editData.salon_name || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {errors.salon_name && <p className="mt-1 text-sm text-red-600">{errors.salon_name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={editData.email || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresa</label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={editData.address || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Grad</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={editData.city || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={editData.phone || ''}
-                    onChange={handleInputChange}
-                    className="w-full p-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
-                </div>
-                <div className="flex justify-end gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      setErrors({});
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Otkaži
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
-                  >
-                    Sačuvaj
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         </div>

@@ -269,7 +269,7 @@ const WorkerAppointments = ({ workerId }) => {
             <div className="text-sm font-medium text-gray-600">
               {format(selectedDate, "EEEE", { locale: sr })}
             </div>
-            <div className="text-lg font-semibold text-gray-900">
+            <div className="text-lg font-medium text-gray-900">
               {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
             </div>
             {data?.schedule && (
@@ -393,7 +393,7 @@ const WorkerAppointments = ({ workerId }) => {
             <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900">
                     Novi termin
                   </h3>
                   <p className="mt-1 text-sm text-gray-600">
@@ -556,7 +556,7 @@ const WorkerAppointments = ({ workerId }) => {
                       {format(selectedDate, "EEEE", { locale: sr })}
                     </span>
                   </div>
-                  <div className="text-2xl font-bold text-green-900">
+                  <div className="text-2xl font-medium text-green-900">
                     {selectedAppointment.start_time} - {selectedAppointment.end_time}
                   </div>
                   <div className="text-sm text-green-700 mt-0.5">
@@ -585,7 +585,7 @@ const WorkerAppointments = ({ workerId }) => {
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-500">Usluga</div>
-                  <div className="text-base font-semibold text-gray-900 mt-0.5">{selectedAppointment.service_name}</div>
+                  <div className="text-base font-medium text-gray-900 mt-0.5">{selectedAppointment.service_name}</div>
                   <div className="flex items-center gap-1 mt-1 text-sm text-gray-600">
                     <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -604,7 +604,7 @@ const WorkerAppointments = ({ workerId }) => {
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-500">Klijent</div>
-                  <div className="text-base font-semibold text-gray-900 mt-0.5">{selectedAppointment.customer_name}</div>
+                  <div className="text-base font-medium text-gray-900 mt-0.5">{selectedAppointment.customer_name}</div>
                   
                   <div className="mt-3 flex flex-col sm:flex-row gap-2">
                     <a 

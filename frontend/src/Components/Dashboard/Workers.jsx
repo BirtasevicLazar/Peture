@@ -142,18 +142,21 @@ const Workers = ({ onWorkerSelect }) => {
 
   return (
     <div className="h-full pb-20 lg:pb-0">
-      {/* Header */}
-      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm mb-6">
+      {/* Moderan Header */}
+      <div className="bg-gradient-to-r from-green-400 to-blue-500 p-6 rounded-xl shadow-lg mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Radnici</h1>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Radnici</h1>
+            <p className="text-green-50 mt-1">Upravljajte svojim timom na jednom mestu</p>
+          </div>
           <button
             onClick={() => handleOpenModal()}
-            className="inline-flex items-center justify-center px-4 py-2.5 border border-transparent 
-                     text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 
+            className="inline-flex items-center justify-center px-6 py-3 border border-transparent 
+                     text-sm font-medium rounded-xl text-green-600 bg-white hover:bg-green-50 
                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 
-                     transition-colors duration-200 shadow-sm"
+                     transition-all duration-200 shadow-md"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                     d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -162,63 +165,86 @@ const Workers = ({ onWorkerSelect }) => {
         </div>
       </div>
 
-      {/* Workers Table/Cards Container */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="hidden md:block"> {/* Desktop table */}
+      {/* Kontejner za kartice/tabelu */}
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Desktop tabela */}
+        <div className="hidden lg:block">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ime i prezime</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vremenski slot</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ime i prezime
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Telefon
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vremenski slot
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Akcije
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {workers.map((worker) => (
                   <tr 
-                    key={worker.id} 
+                    key={worker.id}
                     onClick={() => onWorkerSelect(worker)}
-                    className="hover:bg-gray-50 transition-colors duration-150"
+                    className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
-                      <div className="text-sm font-medium text-gray-900">{worker.ime} {worker.prezime}</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-green-400 to-blue-500 
+                                        flex items-center justify-center text-white font-medium">
+                            {worker.ime[0]}{worker.prezime[0]}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{worker.ime} {worker.prezime}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{worker.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{worker.telefon}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap cursor-pointer">
-                      <div className="text-sm text-gray-500">{worker.time_slot} min</div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        {worker.time_slot} min
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenModal(worker);
-                        }}
-                        className="text-green-600 hover:text-green-900 mr-4 transition-colors duration-150"
-                      >
-                        <span className="sr-only">Izmeni</span>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => handleDelete(worker.id, e)}
-                        className="text-red-600 hover:text-red-900 transition-colors duration-150"
-                      >
-                        <span className="sr-only">Obriši</span>
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(worker);
+                          }}
+                          className="text-green-600 hover:text-green-900 transition-colors duration-200"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => handleDelete(worker.id, e)}
+                          className="text-red-600 hover:text-red-900 transition-colors duration-200"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -226,66 +252,78 @@ const Workers = ({ onWorkerSelect }) => {
             </table>
           </div>
         </div>
-        
-        {/* Mobile cards */}
-        <div className="md:hidden">
-          <div className="divide-y divide-gray-200">
+
+        {/* Mobilne kartice */}
+        <div className="lg:hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
             {workers.map((worker) => (
-              <div 
+              <div
                 key={worker.id}
                 onClick={() => onWorkerSelect(worker)}
-                className="p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="text-base font-semibold text-gray-900">
-                      {worker.ime} {worker.prezime}
+                <div className="p-4 sm:p-5">
+                  {/* Worker Header */}
+                  <div className="flex items-center mb-4">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-r from-green-400 to-blue-500 
+                                  flex items-center justify-center text-white text-lg font-medium shadow-md">
+                      {worker.ime[0]}{worker.prezime[0]}
                     </div>
-                    <div className="flex flex-col space-y-1">
-                      <div className="text-sm text-gray-500 flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        {worker.email}
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {worker.telefon}
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center">
-                        <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Vremenski slot: {worker.time_slot} min
-                      </div>
+                    <div className="ml-3 flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 truncate">
+                        {worker.ime} {worker.prezime}
+                      </h3>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                     bg-green-100 text-green-800 mt-1">
+                        {worker.time_slot} min
+                      </span>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  
+                  {/* Worker Info */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="truncate">{worker.email}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-2 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                      <span className="truncate">{worker.telefon}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end space-x-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenModal(worker);
                       }}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-150"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-green-600 
+                               bg-green-50 rounded-lg hover:bg-green-100 transition-all duration-200"
                     >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                               d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
+                      Izmeni
                     </button>
                     <button
                       onClick={(e) => handleDelete(worker.id, e)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 
+                               bg-red-50 rounded-lg hover:bg-red-100 transition-all duration-200"
                     >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
+                      Obriši
                     </button>
                   </div>
                 </div>
@@ -298,40 +336,49 @@ const Workers = ({ onWorkerSelect }) => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
-            <div 
-              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
               onClick={() => { setIsModalOpen(false); resetForm(); }}
-            ></div>
+              aria-hidden="true"
+            />
 
-            {/* Modal panel */}
-            <div className="inline-block w-full max-w-2xl transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:align-middle">
+            {/* Modal pozicioniranje */}
+            <span className="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+
+            {/* Modal sadržaj */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative inline-block transform overflow-hidden rounded-2xl bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle"
+            >
               {/* Modal header */}
-              <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {selectedWorker ? 'Izmeni podatke o radniku' : 'Dodaj radnika'}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      resetForm();
-                    }}
-                    className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <span className="sr-only">Zatvori</span>
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+              <div className="absolute top-0 right-0 pt-4 pr-4">
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetForm();
+                  }}
+                  className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <span className="sr-only">Zatvori</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="flex h-full max-h-[calc(100vh-200px)] flex-col">
-                {/* Modal body - scrollable content */}
-                <div className="flex-1 overflow-y-auto px-6 py-5">
-                  <div className="mx-auto max-w-lg space-y-6">
+              <div className="bg-white">
+                <div className="px-4 pt-5 pb-4 sm:p-6">
+                  <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                    <h3 className="text-xl font-semibold leading-6 text-gray-900 mb-6">
+                      {selectedWorker ? 'Izmeni podatke o radniku' : 'Dodaj radnika'}
+                    </h3>
+                  </div>
+                </div>
+
+                <form id="worker-form" onSubmit={handleSubmit} className="max-h-[calc(100vh-200px)] overflow-y-auto px-4 sm:px-6">
+                  <div className="space-y-6">
                     {/* Osnovni podaci */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Osnovni podaci</h3>
@@ -346,11 +393,13 @@ const Workers = ({ onWorkerSelect }) => {
                             name="ime"
                             value={formData.ime}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm transition-colors duration-200"
                             required
                           />
                           {errors.ime && (
-                            <p className="mt-1 text-sm text-red-600">{errors.ime}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.ime}
+                            </p>
                           )}
                         </div>
                         <div className="col-span-1">
@@ -363,11 +412,13 @@ const Workers = ({ onWorkerSelect }) => {
                             name="prezime"
                             value={formData.prezime}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm transition-colors duration-200"
                             required
                           />
                           {errors.prezime && (
-                            <p className="mt-1 text-sm text-red-600">{errors.prezime}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.prezime}
+                            </p>
                           )}
                         </div>
                         <div className="col-span-2">
@@ -380,11 +431,13 @@ const Workers = ({ onWorkerSelect }) => {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm transition-colors duration-200"
                             required
                           />
                           {errors.email && (
-                            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.email}
+                            </p>
                           )}
                         </div>
                         <div className="col-span-2">
@@ -397,11 +450,13 @@ const Workers = ({ onWorkerSelect }) => {
                             name="telefon"
                             value={formData.telefon}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm transition-colors duration-200"
                             required
                           />
                           {errors.telefon && (
-                            <p className="mt-1 text-sm text-red-600">{errors.telefon}</p>
+                            <p className="mt-1 text-sm text-red-600">
+                              {errors.telefon}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -412,7 +467,7 @@ const Workers = ({ onWorkerSelect }) => {
                       <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Način rada sa terminima</h3>
                       
                       {/* Info box */}
-                      <div className="rounded-md bg-blue-50 p-4">
+                      <div className="rounded-lg bg-blue-50 p-4">
                         <div className="flex">
                           <div className="flex-shrink-0">
                             <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -455,11 +510,11 @@ const Workers = ({ onWorkerSelect }) => {
                               {[10, 15, 20, 30, 60].map(value => (
                                 <label
                                   key={value}
-                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none
+                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-all duration-200
                                     ${parseInt(formData.time_slot) === value 
                                       ? 'border-green-500 bg-green-50' 
-                                      : 'border-gray-200 bg-white'}
-                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                                      : 'border-gray-200 bg-white hover:bg-gray-50'}
+                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                   <input
                                     type="radio"
@@ -484,7 +539,11 @@ const Workers = ({ onWorkerSelect }) => {
                                       </div>
                                     </div>
                                     {parseInt(formData.time_slot) === value && (
-                                      <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                      <svg 
+                                        className="h-5 w-5 text-green-600" 
+                                        viewBox="0 0 20 20" 
+                                        fill="currentColor"
+                                      >
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                       </svg>
                                     )}
@@ -505,11 +564,11 @@ const Workers = ({ onWorkerSelect }) => {
                               {[-10, -15, -20, -30, -60].map(value => (
                                 <label
                                   key={value}
-                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none
+                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-all duration-200
                                     ${parseInt(formData.time_slot) === value 
                                       ? 'border-green-500 bg-green-50' 
-                                      : 'border-gray-200 bg-white'}
-                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                                      : 'border-gray-200 bg-white hover:bg-gray-50'}
+                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                   <input
                                     type="radio"
@@ -534,7 +593,11 @@ const Workers = ({ onWorkerSelect }) => {
                                       </div>
                                     </div>
                                     {parseInt(formData.time_slot) === value && (
-                                      <svg className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                                      <svg 
+                                        className="h-5 w-5 text-green-600" 
+                                        viewBox="0 0 20 20" 
+                                        fill="currentColor"
+                                      >
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                       </svg>
                                     )}
@@ -548,7 +611,7 @@ const Workers = ({ onWorkerSelect }) => {
 
                       {/* Warning for existing services */}
                       {hasServices && (
-                        <div className="rounded-md bg-yellow-50 p-4">
+                        <div className="rounded-lg bg-yellow-50 p-4">
                           <div className="flex">
                             <div className="flex-shrink-0">
                               <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
@@ -567,30 +630,28 @@ const Workers = ({ onWorkerSelect }) => {
                       )}
                     </div>
                   </div>
-                </div>
-
-                {/* Modal footer */}
-                <div className="sticky bottom-0 bg-white px-6 py-4 border-t">
-                  <div className="flex justify-end space-x-3">
+                  
+                  {/* Modal footer */}
+                  <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 sticky bottom-0 mt-6">
+                    <button
+                      type="submit"
+                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto"
+                    >
+                      {selectedWorker ? 'Sačuvaj' : 'Dodaj'}
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
                         setIsModalOpen(false);
                         resetForm();
                       }}
-                      className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     >
                       Otkaži
                     </button>
-                    <button
-                      type="submit"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                    >
-                      {selectedWorker ? 'Sačuvaj' : 'Dodaj'}
-                    </button>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
