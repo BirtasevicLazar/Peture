@@ -5,6 +5,7 @@ import Salon from './Salon';
 import Services from './Services';
 import WorkerSchedule from './WorkerSchedule';
 import WorkerAppointments from './WorkerAppointments';
+import axios from 'axios';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
@@ -13,9 +14,33 @@ const Dashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [activeSubmenu, setActiveSubmenu] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [hasWorkers, setHasWorkers] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Provera da li salon ima radnike
+    const checkWorkers = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const hasExistingWorkers = response.data.length > 0;
+        setHasWorkers(hasExistingWorkers);
+        
+        // Prikaži onboarding samo ako nema radnika i nije ranije prikazan
+        const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+        if (!hasExistingWorkers && !hasSeenOnboarding) {
+          setShowOnboarding(true);
+        }
+      } catch (error) {
+        console.error('Error checking workers:', error);
+      }
+    };
+
+    checkWorkers();
+
     // Prevent going back
     window.history.pushState(null, '', window.location.href);
     window.onpopstate = function(event) {
@@ -155,6 +180,237 @@ const Dashboard = () => {
     }
 
     return null;
+  };
+
+  const OnboardingModal = () => {
+    const steps = [
+      {
+        title: "Dobrodošli! 🎉",
+        description: "Vodićemo Vas kroz sve mogućnosti Peture platforme.",
+        icon: (
+          <div className="relative w-16 h-16 mx-auto lg:w-24 lg:h-24">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-100 to-green-200 rounded-xl animate-pulse"></div>
+            <div className="absolute -inset-1 bg-gradient-to-br from-green-400 to-green-600 rounded-xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+            <svg className="absolute inset-0 w-16 h-16 lg:w-24 lg:h-24 text-green-600 transform transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+        ),
+        features: [
+          {
+            title: "Sve na jednom mestu",
+            description: "Upravljanje salonom",
+            icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"
+          },
+          {
+            title: "Online Zakazivanje",
+            description: "24/7 dostupnost",
+            icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          },
+          {
+            title: "Obaveštenja",
+            description: "SMS i email",
+            icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          }
+        ]
+      },
+      {
+        title: "Radnici 👥",
+        description: "Dodajte radnike i organizujte njihov rad.",
+        icon: (
+          <div className="relative w-16 h-16 mx-auto lg:w-24 lg:h-24">
+            <div className="absolute inset-0 bg-blue-100 rounded-full animate-pulse"></div>
+            <svg className="absolute inset-0 w-16 h-16 lg:w-24 lg:h-24 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+        ),
+        features: [
+          {
+            title: "Profil",
+            description: "Osnovni podaci",
+            icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0z"
+          },
+          {
+            title: "Radno Vreme",
+            description: "Raspored rada",
+            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          },
+          {
+            title: "Usluge",
+            description: "Cene i trajanje",
+            icon: "M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4"
+          }
+        ]
+      },
+      {
+        title: "Usluge 💇‍♀️",
+        description: "Definišite usluge i cene za svakog radnika.",
+        icon: (
+          <div className="relative w-16 h-16 mx-auto lg:w-24 lg:h-24">
+            <div className="absolute inset-0 bg-purple-100 rounded-full animate-pulse"></div>
+            <svg className="absolute inset-0 w-16 h-16 lg:w-24 lg:h-24 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </div>
+        ),
+        features: [
+          {
+            title: "Cene",
+            description: "Postavite cene",
+            icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2"
+          },
+          {
+            title: "Trajanje",
+            description: "Vreme usluge",
+            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          },
+          {
+            title: "Opis",
+            description: "Detalji usluge",
+            icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586"
+          }
+        ]
+      },
+      {
+        title: "Termini 📅",
+        description: "Upravljajte zakazanim terminima.",
+        icon: (
+          <div className="relative w-16 h-16 mx-auto lg:w-24 lg:h-24">
+            <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse"></div>
+            <svg className="absolute inset-0 w-16 h-16 lg:w-24 lg:h-24 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        ),
+        features: [
+          {
+            title: "Kalendar",
+            description: "Pregled termina",
+            icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5"
+          },
+          {
+            title: "Notifikacije",
+            description: "Obaveštenja",
+            icon: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11"
+          },
+          {
+            title: "Istorija",
+            description: "Prošli termini",
+            icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          }
+        ]
+      }
+    ];
+
+    return (
+      <div className={`fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 ${showOnboarding ? '' : 'hidden'}`}>
+        <div className="bg-white/95 backdrop-blur-md w-full h-full lg:h-auto lg:w-auto lg:max-w-4xl lg:rounded-3xl lg:mx-4 overflow-y-auto shadow-2xl border border-white/20">
+          {/* Content Container */}
+          <div className="p-4 lg:p-8">
+            {/* Icon i Naslov */}
+            <div className="text-center mb-8">
+              <div className="group">
+                {steps[onboardingStep - 1].icon}
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mt-6 mb-3 lg:text-4xl animate-fade-in">
+                {steps[onboardingStep - 1].title}
+              </h2>
+              <p className="text-sm text-gray-600 lg:text-lg animate-fade-in max-w-xl mx-auto">
+                {steps[onboardingStep - 1].description}
+              </p>
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 gap-4 mt-8 lg:grid-cols-3 lg:gap-6">
+              {steps[onboardingStep - 1].features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="group relative bg-gradient-to-br from-white to-gray-50 rounded-xl p-4 lg:p-6 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl animate-slide-in"
+                  style={{ animationDelay: `${index * 150}ms` }}
+                >
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-0 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative flex items-center lg:block">
+                    <div className="bg-gradient-to-br from-white to-blue-50 rounded-xl p-3 w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center shadow-md group-hover:shadow-xl transition-shadow">
+                      <svg className="w-6 h-6 lg:w-7 lg:h-7 text-blue-600 transform transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={feature.icon} />
+                      </svg>
+                    </div>
+                    <div className="ml-4 lg:ml-0 lg:mt-4">
+                      <h3 className="text-base font-semibold text-gray-900 lg:text-lg mb-1">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 lg:text-base">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation Footer */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-200/50 p-4 lg:static lg:p-6">
+            {/* Progress Bar */}
+            <div className="relative h-1.5 bg-gray-200 rounded-full mb-6 overflow-hidden">
+              <div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-green-600 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${(onboardingStep / steps.length) * 100}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-shimmer"></div>
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => setOnboardingStep(prev => prev - 1)}
+                className={`group flex items-center text-sm font-medium text-gray-600 px-4 py-2.5 lg:px-5 lg:py-2.5 rounded-xl hover:bg-gray-100 transition-all ${
+                  onboardingStep === 1 ? 'opacity-0 pointer-events-none' : ''
+                }`}
+              >
+                <svg className="w-4 h-4 mr-2 transform transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Nazad
+              </button>
+
+              {onboardingStep < steps.length ? (
+                <button
+                  onClick={() => setOnboardingStep(prev => prev + 1)}
+                  className="group relative inline-flex items-center text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 lg:px-6 lg:py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-lg hover:scale-[1.02]"
+                >
+                  <span className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl blur opacity-0 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></span>
+                  <span className="relative flex items-center">
+                    Dalje
+                    <svg className="w-4 h-4 ml-2 transform transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowOnboarding(false);
+                    localStorage.setItem('hasSeenOnboarding', 'true');
+                  }}
+                  className="group relative inline-flex items-center text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 lg:px-6 lg:py-2.5 rounded-xl hover:from-green-700 hover:to-green-800 transition-all hover:shadow-lg hover:scale-[1.02]"
+                >
+                  <span className="absolute -inset-0.5 bg-gradient-to-r from-green-600 to-blue-600 rounded-xl blur opacity-0 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></span>
+                  <span className="relative flex items-center">
+                    Započni
+                    <svg className="w-4 h-4 ml-2 transform transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -400,6 +656,8 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      <OnboardingModal />
     </div>
   );
 };
