@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Worker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Appointment;
 
 class WorkerController extends Controller
 {
@@ -91,37 +92,41 @@ class WorkerController extends Controller
                 'time_slot' => 'required|integer|in:-60,-30,-20,-15,-10,10,15,20,30,60'
             ]);
 
-            // Proveri da li radnik ima usluge
-            if ($worker->services()->exists()) {
-                $newTimeSlot = abs($validatedData['time_slot']);
-                $services = $worker->services()->get();
-                
-                // Proveri kompatibilnost sa svim uslugama
-                $incompatibleServices = [];
-                foreach ($services as $service) {
-                    // Proveri da li je trajanje usluge deljivo sa novim time slotom
-                    // ILI da li je novi time slot deljiv sa trajanjem usluge
-                    if (!($service->trajanje % $newTimeSlot === 0 || $newTimeSlot % $service->trajanje === 0)) {
-                        $incompatibleServices[] = [
-                            'naziv' => $service->naziv,
-                            'trajanje' => $service->trajanje
-                        ];
+            // Proveri da li se menja time_slot
+            if ($worker->time_slot !== $validatedData['time_slot']) {
+                // Proveri da li radnik ima usluge
+                if ($worker->services()->exists()) {
+                    $newTimeSlot = abs($validatedData['time_slot']);
+                    $oldTimeSlot = abs($worker->time_slot);
+                    $services = $worker->services()->get();
+                    
+                    // Proveri kompatibilnost sa svim uslugama
+                    $incompatibleServices = [];
+                    foreach ($services as $service) {
+                        // Proveri da li je trajanje usluge deljivo sa novim time slotom
+                        // ILI da li je novi time slot deljiv sa trajanjem usluge
+                        if (!($service->trajanje % $newTimeSlot === 0 || $newTimeSlot % $service->trajanje === 0)) {
+                            $incompatibleServices[] = [
+                                'naziv' => $service->naziv,
+                                'trajanje' => $service->trajanje
+                            ];
+                        }
                     }
-                }
-                
-                if (!empty($incompatibleServices)) {
-                    $serviceList = collect($incompatibleServices)
-                        ->map(function($service) {
-                            return "{$service['naziv']} ({$service['trajanje']} min)";
-                        })
-                        ->join(', ');
-                        
-                    return response()->json([
-                        'message' => "Ne možete promeniti na {$newTimeSlot} minuta jer nije kompatibilno sa trajanjem sledećih usluga: {$serviceList}",
-                        'errors' => [
-                            'time_slot' => ["Nije kompatibilno sa uslugama: {$serviceList}"]
-                        ]
-                    ], 422);
+                    
+                    if (!empty($incompatibleServices)) {
+                        $serviceList = collect($incompatibleServices)
+                            ->map(function($service) {
+                                return "{$service['naziv']} ({$service['trajanje']} min)";
+                            })
+                            ->join(', ');
+                            
+                        return response()->json([
+                            'message' => "Ne možete promeniti na {$newTimeSlot} minuta jer nije kompatibilno sa trajanjem sledećih usluga: {$serviceList}",
+                            'errors' => [
+                                'time_slot' => ["Nije kompatibilno sa uslugama: {$serviceList}"]
+                            ]
+                        ], 422);
+                    }
                 }
             }
 

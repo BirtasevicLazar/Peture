@@ -13,8 +13,6 @@ const Workers = ({ onWorkerSelect }) => {
     time_slot: '15'
   });
   const [errors, setErrors] = useState({});
-  const [hasServices, setHasServices] = useState(false);
-  const [workerServices, setWorkerServices] = useState([]);
 
   const fetchWorkers = async () => {
     try {
@@ -27,40 +25,12 @@ const Workers = ({ onWorkerSelect }) => {
     }
   };
 
-  const fetchWorkerServices = async (workerId) => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/services?worker_id=${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setWorkerServices(response.data);
-    } catch (error) {
-      console.error('Error fetching worker services:', error);
-    }
-  };
-
   useEffect(() => {
     fetchWorkers();
   }, []);
 
-  useEffect(() => {
-    if (selectedWorker) {
-      setHasServices(selectedWorker.services && selectedWorker.services.length > 0);
-      fetchWorkerServices(selectedWorker.id);
-    }
-  }, [selectedWorker]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    // Resetuj grešku za time_slot kada se promeni vrednost
-    if (name === 'time_slot') {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.time_slot;
-        return newErrors;
-      });
-    }
-    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -88,12 +58,6 @@ const Workers = ({ onWorkerSelect }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Provera da li postoji greška za time_slot
-    if (errors.time_slot) {
-      return;
-    }
-    
     try {
       if (selectedWorker) {
         await axios.put(`${import.meta.env.VITE_API_URL}/workers/${selectedWorker.id}`, formData, {
@@ -126,18 +90,6 @@ const Workers = ({ onWorkerSelect }) => {
         console.error('Error deleting worker:', error);
       }
     }
-  };
-
-  const isTimeSlotDisabled = (value) => {
-    // Ako nema usluga ili nije selektovan radnik, sve opcije su dostupne
-    if (!hasServices || !selectedWorker) return false;
-    
-    // Ako postoji greška za trenutni time_slot, opcija je onemogućena
-    if (errors.time_slot && Math.abs(parseInt(formData.time_slot)) === Math.abs(value)) {
-      return true;
-    }
-    
-    return false;
   };
 
   return (
@@ -182,9 +134,6 @@ const Workers = ({ onWorkerSelect }) => {
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Telefon
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Vremenski slot
-                  </th>
                   <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Akcije
                   </th>
@@ -215,11 +164,6 @@ const Workers = ({ onWorkerSelect }) => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">{worker.telefon}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {worker.time_slot} min
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-3">
@@ -273,10 +217,6 @@ const Workers = ({ onWorkerSelect }) => {
                       <h3 className="text-base font-semibold text-gray-900 truncate">
                         {worker.ime} {worker.prezime}
                       </h3>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                     bg-green-100 text-green-800 mt-1">
-                        {worker.time_slot} min
-                      </span>
                     </div>
                   </div>
                   
@@ -377,7 +317,7 @@ const Workers = ({ onWorkerSelect }) => {
                   </div>
                 </div>
 
-                <form id="worker-form" onSubmit={handleSubmit} className="max-h-[calc(100vh-200px)] overflow-y-auto px-4 sm:px-6">
+                <form onSubmit={handleSubmit} className="px-4 sm:px-6">
                   <div className="space-y-6">
                     {/* Osnovni podaci */}
                     <div className="space-y-4">
@@ -460,174 +400,6 @@ const Workers = ({ onWorkerSelect }) => {
                           )}
                         </div>
                       </div>
-                    </div>
-
-                    {/* Način rada sa terminima */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Način rada sa terminima</h3>
-                      
-                      {/* Info box */}
-                      <div className="rounded-lg bg-blue-50 p-4">
-                        <div className="flex">
-                          <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                          </div>
-                          <div className="ml-3">
-                            <h4 className="text-sm font-medium text-blue-800">Kako izabrati način rada?</h4>
-                            <p className="mt-2 text-sm text-blue-700">
-                              Izaberite način koji najbolje odgovara vašem stilu rada i vrsti usluga koje pružate.
-                              Ovo podešavanje određuje kako će klijenti videti slobodne termine za zakazivanje.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Time slot options */}
-                      <div className="space-y-4">
-                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                          <fieldset>
-                            <legend className="text-base font-medium text-gray-900">Klasičan prikaz termina</legend>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Termini su podeljeni na fiksne intervale. Idealno za standardizovane usluge.
-                            </p>
-                            {errors.time_slot && (
-                              <div className="mt-2 rounded-md bg-red-50 p-4">
-                                <div className="flex">
-                                  <div className="flex-shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                  </div>
-                                  <div className="ml-3">
-                                    <p className="text-sm text-red-700">{errors.time_slot}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            <div className="mt-4 space-y-3">
-                              {[10, 15, 20, 30, 60].map(value => (
-                                <label
-                                  key={value}
-                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-all duration-200
-                                    ${parseInt(formData.time_slot) === value 
-                                      ? 'border-green-500 bg-green-50' 
-                                      : 'border-gray-200 bg-white hover:bg-gray-50'}
-                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name="time_slot"
-                                    value={value}
-                                    checked={parseInt(formData.time_slot) === value}
-                                    onChange={handleInputChange}
-                                    className="sr-only"
-                                    disabled={isTimeSlotDisabled(value)}
-                                  />
-                                  <div className="flex w-full items-center justify-between">
-                                    <div className="flex items-center">
-                                      <div className="text-sm">
-                                        <p className="font-medium text-gray-900">{value} minuta</p>
-                                        <p className="text-gray-500">
-                                          {value === 10 && "Za najkraće usluge"}
-                                          {value === 15 && "Za kratke usluge"}
-                                          {value === 20 && "Idealno za većinu usluga"}
-                                          {value === 30 && "Za duže tretmane"}
-                                          {value === 60 && "Za dugačke tretmane"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {parseInt(formData.time_slot) === value && (
-                                      <svg 
-                                        className="h-5 w-5 text-green-600" 
-                                        viewBox="0 0 20 20" 
-                                        fill="currentColor"
-                                      >
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                </label>
-                              ))}
-                            </div>
-                          </fieldset>
-                        </div>
-
-                        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                          <fieldset>
-                            <legend className="text-base font-medium text-gray-900">Prikaz prema trajanju usluge</legend>
-                            <p className="text-sm text-gray-500 mt-1">
-                              Termini se automatski prilagođavaju trajanju svake usluge.
-                            </p>
-                            <div className="mt-4 space-y-3">
-                              {[-10, -15, -20, -30, -60].map(value => (
-                                <label
-                                  key={value}
-                                  className={`relative flex cursor-pointer rounded-lg border p-4 focus:outline-none transition-all duration-200
-                                    ${parseInt(formData.time_slot) === value 
-                                      ? 'border-green-500 bg-green-50' 
-                                      : 'border-gray-200 bg-white hover:bg-gray-50'}
-                                    ${isTimeSlotDisabled(value) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                  <input
-                                    type="radio"
-                                    name="time_slot"
-                                    value={value}
-                                    checked={parseInt(formData.time_slot) === value}
-                                    onChange={handleInputChange}
-                                    className="sr-only"
-                                    disabled={isTimeSlotDisabled(value)}
-                                  />
-                                  <div className="flex w-full items-center justify-between">
-                                    <div className="flex items-center">
-                                      <div className="text-sm">
-                                        <p className="font-medium text-gray-900">{Math.abs(value)} minuta</p>
-                                        <p className="text-gray-500">
-                                          {value === -10 && "Za najkraće usluge sa prilagođenim trajanjem"}
-                                          {value === -15 && "Za precizno praćenje kraćih usluga"}
-                                          {value === -20 && "Optimalno za mešavinu različitih usluga"}
-                                          {value === -30 && "Za salone sa pretežno dužim tretmanima"}
-                                          {value === -60 && "Za salone sa dugačkim tretmanima"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {parseInt(formData.time_slot) === value && (
-                                      <svg 
-                                        className="h-5 w-5 text-green-600" 
-                                        viewBox="0 0 20 20" 
-                                        fill="currentColor"
-                                      >
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                      </svg>
-                                    )}
-                                  </div>
-                                </label>
-                              ))}
-                            </div>
-                          </fieldset>
-                        </div>
-                      </div>
-
-                      {/* Warning for existing services */}
-                      {hasServices && (
-                        <div className="rounded-lg bg-yellow-50 p-4">
-                          <div className="flex">
-                            <div className="flex-shrink-0">
-                              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                            <div className="ml-3">
-                              <h4 className="text-sm font-medium text-yellow-800">Napomena</h4>
-                              <p className="mt-2 text-sm text-yellow-700">
-                                Pošto već imate postavljene usluge, možete samo promeniti način rada za trenutnu 
-                                dužinu termina od {Math.abs(selectedWorker.time_slot)} minuta (klasičan/prema trajanju).
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                   
