@@ -119,7 +119,14 @@ const BookingPage = () => {
         }
       });
       
-      setAppointments(response.data || []);
+      // Filtriramo termine koji su prošli
+      const now = new Date();
+      const filteredAppointments = response.data.filter(appointment => {
+        const appointmentDateTime = new Date(`${appointment.date} ${appointment.start_time}`);
+        return appointmentDateTime > now;
+      });
+      
+      setAppointments(filteredAppointments || []);
     } catch (error) {
       const errorMessage = error.response?.data?.message || 
         'Došlo je do greške prilikom učitavanja dostupnih termina';
@@ -356,11 +363,14 @@ const BookingPage = () => {
   const renderAppointments = () => {
     if (appointments.length === 0) {
       return (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 text-sm">
           Nema dostupnih termina za izabrani datum
         </div>
       );
     }
+
+    // Proveravamo da li je izabrani datum danas
+    const isToday = new Date().toDateString() === selectedDate.toDateString();
 
     return (
       <div 
@@ -376,67 +386,101 @@ const BookingPage = () => {
         }}
       >
         <div className="flex space-x-3 min-w-max px-4 py-2">
-          {appointments.map((slot) => (
-            <button
-              key={slot.id}
-              onClick={() => setSelectedTime(slot)}
-              className={`
-                p-3 rounded-lg text-sm transition-all duration-200
-                ${selectedTime?.id === slot.id
-                  ? 'bg-green-600 text-white shadow-lg scale-105'
-                  : 'bg-white hover:bg-green-50 border border-gray-200'
-                }
-              `}
-            >
-              <div className="font-medium">{slot.start_time}</div>
-              <div className="text-xs mt-1 opacity-75">
-                {slot.duration} min
-              </div>
-              <div className="text-xs mt-1 font-medium">
-                {slot.price} RSD
-              </div>
-            </button>
-          ))}
+          {appointments.map((slot) => {
+            // Ako je danas, proveravamo da li je vreme prošlo
+            if (isToday) {
+              const now = new Date();
+              const [hours, minutes] = slot.start_time.split(':').map(Number);
+              const slotTime = new Date(selectedDate);
+              slotTime.setHours(hours, minutes, 0, 0);
+              
+              if (slotTime < now) {
+                return null; // Ne prikazujemo prošle termine
+              }
+            }
+
+            return (
+              <button
+                key={slot.id}
+                onClick={() => setSelectedTime(slot)}
+                className={`
+                  p-3 rounded-lg text-sm transition-all duration-200
+                  ${selectedTime?.id === slot.id
+                    ? 'bg-green-600 text-white shadow-lg scale-105'
+                    : 'bg-white hover:bg-green-50 border border-gray-200'
+                  }
+                `}
+              >
+                <div className="font-medium">{slot.start_time}</div>
+                <div className="text-xs mt-1 opacity-75">
+                  {slot.duration} min
+                </div>
+                <div className="text-xs mt-1 font-medium">
+                  {slot.price} RSD
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
   };
 
+  // Dodajemo funkciju za formatiranje datuma
+  const formatDate = (date) => {
+    const months = [
+      'Januar', 'Februar', 'Mart', 'April', 'Maj', 'Jun',
+      'Jul', 'Avgust', 'Septembar', 'Oktobar', 'Novembar', 'Decembar'
+    ];
+    
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${day}. ${month} ${year}`;
+  };
+
   // Prikaz detalja rezervacije
   const renderBookingSummary = () => {
-    if (!selectedWorker || !selectedService || !selectedTime) return null;
-
     return (
-      <div className="bg-gray-50 p-4 rounded-lg space-y-3 text-sm">
-        <h3 className="font-semibold text-gray-900">Detalji rezervacije:</h3>
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Radnik:</span>
-            <span className="font-medium">{selectedWorker.ime} {selectedWorker.prezime}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Usluga:</span>
-            <span className="font-medium">{selectedService.naziv}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Datum:</span>
-            <span className="font-medium">
-              {selectedTime.date}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Vreme:</span>
-            <span className="font-medium">
-              {selectedTime.start_time} - {selectedTime.end_time}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Trajanje:</span>
-            <span className="font-medium">{selectedTime.duration} minuta</span>
-          </div>
-          <div className="flex justify-between pt-2 border-t border-gray-200">
-            <span className="font-medium">Ukupno:</span>
-            <span className="font-semibold text-green-600">{selectedTime.price} RSD</span>
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-medium text-gray-900 mb-3">Detalji rezervacije</h3>
+          <div className="space-y-2 text-sm">
+            <p className="flex justify-between">
+              <span className="text-gray-500">Salon</span>
+              <span className="font-medium text-gray-900">{salon?.salon_name}</span>
+            </p>
+            {salon?.address && (
+              <p className="flex justify-between">
+                <span className="text-gray-500">Adresa</span>
+                <span className="font-medium text-gray-900">{salon.address}</span>
+              </p>
+            )}
+            <p className="flex justify-between">
+              <span className="text-gray-500">Frizer</span>
+              <span className="font-medium text-gray-900">{selectedWorker?.ime} {selectedWorker?.prezime}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-gray-500">Usluga</span>
+              <span className="font-medium text-gray-900">{selectedService?.naziv}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-gray-500">Datum</span>
+              <span className="font-medium text-gray-900">{formatDate(selectedDate)}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-gray-500">Vreme</span>
+              <span className="font-medium text-gray-900">{selectedTime?.start_time}</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-gray-500">Trajanje</span>
+              <span className="font-medium text-gray-900">{selectedService?.trajanje} min</span>
+            </p>
+            <p className="flex justify-between">
+              <span className="text-gray-500">Cena</span>
+              <span className="font-medium text-gray-900">{selectedService?.cena} RSD</span>
+            </p>
           </div>
         </div>
       </div>
@@ -456,249 +500,317 @@ const BookingPage = () => {
 
   if (bookingSuccess) {
     return (
-      <div className="min-h-screen bg-white pt-28 px-4">
-        <div className="max-w-md mx-auto text-center">
-          <div className="w-20 h-20 mx-auto mb-8">
-            <div className="w-full h-full bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto px-4">
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-8">
+              <div className="w-full h-full bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
             </div>
+            <h2 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+              Uspešno zakazano
+            </h2>
+            <p className="text-gray-500 mb-8">
+              Potvrda rezervacije je poslata na vašu email adresu
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center justify-center px-8 py-3 border border-transparent 
+                text-base font-medium rounded-full text-white bg-green-500 hover:bg-green-600 
+                transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                focus:ring-green-500 shadow-sm"
+            >
+              Zakaži novi termin
+            </button>
           </div>
-          <h2 className="text-3xl font-light text-gray-900 mb-4">
-            Uspešno zakazano
-          </h2>
-          <p className="text-gray-500 mb-8">
-            Potvrda rezervacije je poslata na vašu email adresu
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center px-8 py-3 border border-transparent 
-              text-base font-medium rounded-full text-white bg-green-500 hover:bg-green-600 
-              transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 
-              focus:ring-green-500"
-          >
-            Zakaži novi termin
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-28">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Meta tag za sprečavanje zumiranja */}
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      
       {apiError && <ErrorMessage message={apiError} />}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-light text-gray-900 mb-2">
-            {salon?.salon_name || 'Zakazivanje termina'}
-          </h1>
-          {salon && <p className="text-gray-500">{salon.adresa}</p>}
-        </div>
+      
+      <div className="pt-28 pb-16 px-3 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          {/* Header sa nazivom salona */}
+          <div className="text-center mb-8 sm:mb-12">
+            <h1 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+              {salon?.salon_name || 'Zakazivanje termina'}
+            </h1>
+            {salon && (
+              <div className="flex flex-col items-center text-gray-600 text-sm sm:text-base space-y-2">
+                <p className="flex items-center">
+                  <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  <span className="break-words text-center">{salon.address}</span>
+                </p>
+                {salon.phone && (
+                  <p className="flex items-center">
+                    <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span>{salon.phone}</span>
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
-        {/* Progress Steps */}
-        <div className="mb-12">
-          <div className="relative">
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200">
-              <div 
-                className="h-full bg-green-500 transition-all duration-500"
-                style={{ width: `${((step - 1) / 3) * 100}%` }}
-              />
-            </div>
-            <div className="relative flex justify-between">
-              {steps.map((s) => (
-                <div key={s.number} className="flex flex-col items-center">
+          {/* Progress Steps */}
+          <div className="mb-8 sm:mb-12">
+            <div className="relative px-4 sm:px-12">
+              {/* Progress bar linija */}
+              <div className="absolute top-[14px] sm:top-[18px] left-[35px] right-[35px] sm:left-[47px] sm:right-[47px]">
+                <div className="h-0.5 bg-gray-200 w-full">
                   <div 
-                    className={`
-                      w-10 h-10 rounded-full flex items-center justify-center
-                      transition-all duration-300 relative z-10
-                      ${step > s.number 
-                        ? 'bg-green-500 text-white' 
-                        : step === s.number 
-                          ? 'bg-green-500 text-white ring-4 ring-green-100' 
-                          : 'bg-white border-2 border-gray-300 text-gray-400'
-                      }
-                    `}
-                  >
-                    {step > s.number ? '✓' : s.number}
-                  </div>
-                  <div className="absolute top-12 -left-1/2 w-32 text-center">
-                    <p className={`text-sm font-medium ${
-                      step >= s.number ? 'text-gray-900' : 'text-gray-400'
-                    }`}>
-                      {s.title}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5 hidden sm:block">
-                      {s.description}
-                    </p>
-                  </div>
+                    className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                    style={{ width: `${((step - 1) / 3) * 100}%` }}
+                  />
                 </div>
-              ))}
+              </div>
+
+              {/* Koraci */}
+              <div className="relative flex justify-between">
+                {steps.map((s) => (
+                  <div key={s.number} className="flex flex-col items-center">
+                    <div 
+                      className={`
+                        w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
+                        transition-all duration-300 relative z-10 text-xs sm:text-sm
+                        ${step > s.number 
+                          ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md' 
+                          : step === s.number 
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white ring-2 ring-green-100 shadow-md' 
+                            : 'bg-white border-2 border-gray-300 text-gray-400'
+                        }
+                      `}
+                    >
+                      {step > s.number ? '✓' : s.number}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
-          <div className="p-6 sm:p-8">
-            {/* Step 1 - Worker Selection */}
-            {step === 1 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {workers.map(worker => (
-                  <button
-                    key={worker.id}
-                    onClick={() => setSelectedWorker(worker)}
-                    className={`
-                      group p-6 rounded-xl text-left transition-all duration-200
-                      ${selectedWorker?.id === worker.id 
-                        ? 'bg-green-50 border-2 border-green-500' 
-                        : 'bg-gray-50 border-2 border-transparent hover:border-green-500'}
-                    `}
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className={`
-                        w-12 h-12 rounded-full flex items-center justify-center
-                        transition-colors duration-200
+          {/* Main Content */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm border border-gray-200/50 
+                        overflow-hidden mb-8">
+            <div className="p-3 sm:p-6">
+              {/* Step 1 - Worker Selection */}
+              {step === 1 && (
+                <div className="space-y-2">
+                  {workers.map(worker => (
+                    <button
+                      key={worker.id}
+                      onClick={() => setSelectedWorker(worker)}
+                      className={`
+                        w-full p-3 sm:p-4 rounded-xl text-left transition-all duration-200 border
                         ${selectedWorker?.id === worker.id 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-white text-gray-400 group-hover:text-green-500'}
-                      `}>
-                        <span className="text-lg font-medium">
-                          {worker.ime[0]}{worker.prezime[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className={`
-                          font-medium transition-colors duration-200
-                          ${selectedWorker?.id === worker.id ? 'text-green-600' : 'text-gray-900'}
+                          ? 'bg-green-50 border-green-500 shadow-sm' 
+                          : 'bg-white border-gray-200 hover:border-green-500 hover:shadow-sm'}
+                      `}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className={`
+                          w-9 h-9 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center
+                          transition-colors duration-200 shadow-sm text-xs sm:text-sm flex-shrink-0
+                          ${selectedWorker?.id === worker.id 
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                            : 'bg-gray-50 text-gray-400 group-hover:text-green-500'}
                         `}>
-                          {worker.ime} {worker.prezime}
-                        </h3>
-                        {worker.specijalnost && (
-                          <p className="text-sm text-gray-500 mt-1">{worker.specijalnost}</p>
-                        )}
+                          <span className="font-medium">
+                            {worker.ime[0]}{worker.prezime[0]}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className={`
+                            font-medium text-sm sm:text-base truncate transition-colors duration-200
+                            ${selectedWorker?.id === worker.id ? 'text-green-600' : 'text-gray-900'}
+                          `}>
+                            {worker.ime} {worker.prezime}
+                          </h3>
+                          {worker.specijalnost && (
+                            <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 truncate">
+                              {worker.specijalnost}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Step 2 - Service Selection */}
-            {step === 2 && (
-              <div className="space-y-3">
-                {services.map(service => (
-                  <button
-                    key={service.id}
-                    onClick={() => setSelectedService(service)}
-                    className={`
-                      w-full p-4 rounded-xl text-left transition-all duration-200
-                      ${selectedService?.id === service.id 
-                        ? 'bg-green-50 border-2 border-green-500' 
-                        : 'bg-gray-50 border-2 border-transparent hover:border-green-500'}
-                    `}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className={`font-medium ${
-                          selectedService?.id === service.id ? 'text-green-600' : 'text-gray-900'
-                        }`}>
-                          {service.naziv}
-                        </h3>
-                        {service.opis && (
-                          <p className="text-sm text-gray-500 mt-1">{service.opis}</p>
-                        )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">{service.cena} RSD</p>
-                        <p className="text-sm text-gray-500">{service.trajanje} min</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Step 3 - Date & Time Selection */}
-            {step === 3 && (
-              <div className="space-y-6">
-                <input
-                  type="date"
-                  className="w-full p-4 rounded-xl bg-gray-50 border-2 border-transparent
-                    focus:border-green-500 focus:ring-0 transition-all duration-200"
-                  value={selectedDate.toISOString().split('T')[0]}
-                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-                <div className="relative bg-white rounded-xl p-4 shadow-sm">
-                  {renderAppointments()}
+                    </button>
+                  ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Step 4 - Customer Information */}
-            {step === 4 && (
-              <div className="max-w-md mx-auto space-y-6">
-                {[
-                  { id: 'customer_name', label: 'Ime i prezime', type: 'text' },
-                  { id: 'customer_email', label: 'Email adresa', type: 'email' },
-                  { id: 'customer_phone', label: 'Broj telefona', type: 'tel' }
-                ].map(field => (
-                  <div key={field.id}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {field.label}
-                    </label>
-                    <input
-                      type={field.type}
-                      value={formData[field.id]}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        [field.id]: e.target.value
-                      })}
-                      className="w-full p-4 rounded-xl bg-gray-50 border-2 border-transparent
-                        focus:border-green-500 focus:ring-0 transition-all duration-200"
-                    />
-                    {errors[field.id] && (
-                      <p className="mt-1 text-sm text-red-500">{errors[field.id]}</p>
-                    )}
+              {/* Step 2 - Service Selection */}
+              {step === 2 && (
+                <div className="space-y-2">
+                  {services.map(service => (
+                    <button
+                      key={service.id}
+                      onClick={() => setSelectedService(service)}
+                      className={`
+                        w-full p-3 sm:p-4 rounded-xl text-left transition-all duration-200 border
+                        ${selectedService?.id === service.id 
+                          ? 'bg-green-50 border-green-500 shadow-sm' 
+                          : 'bg-white border-gray-200 hover:border-green-500 hover:shadow-sm'}
+                      `}
+                    >
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className={`text-sm sm:text-base font-medium truncate ${
+                            selectedService?.id === service.id ? 'text-green-600' : 'text-gray-900'
+                          }`}>
+                            {service.naziv}
+                          </h3>
+                          {service.opis && (
+                            <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 line-clamp-2">
+                              {service.opis}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm sm:text-base font-medium text-gray-900">
+                            {service.cena} RSD
+                          </p>
+                          <p className="text-[11px] sm:text-sm text-gray-500">
+                            {service.trajanje} min
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Step 3 - Date & Time Selection */}
+              {step === 3 && (
+                <div className="space-y-4">
+                  <input
+                    type="date"
+                    className="w-full p-3 sm:p-4 rounded-xl bg-white border text-sm
+                             border-gray-200 hover:border-green-500 focus:border-green-500 
+                             focus:ring-0 transition-all duration-200"
+                    value={selectedDate.toISOString().split('T')[0]}
+                    onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <div className="bg-white rounded-xl border border-gray-200">
+                    {renderAppointments()}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
 
-          {/* Navigation */}
-          <div className="px-6 sm:px-8 py-4 bg-gray-50 border-t border-gray-100 flex justify-between">
-            {step > 1 ? (
+              {/* Step 4 - Customer Information */}
+              {step === 4 && (
+                <div className="max-w-md mx-auto space-y-4">
+                  {renderBookingSummary()}
+                  
+                  <div className="space-y-3 mt-4">
+                    {[
+                      { 
+                        id: 'customer_name', 
+                        label: 'Ime i prezime', 
+                        type: 'text',
+                        icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                      },
+                      { 
+                        id: 'customer_email', 
+                        label: 'Email adresa', 
+                        type: 'email',
+                        icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+                      },
+                      { 
+                        id: 'customer_phone', 
+                        label: 'Broj telefona', 
+                        type: 'tel',
+                        icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z'
+                      }
+                    ].map(field => (
+                      <div key={field.id}>
+                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                          {field.label}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={field.icon} />
+                            </svg>
+                          </div>
+                          <input
+                            type={field.type}
+                            value={formData[field.id]}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              [field.id]: e.target.value
+                            })}
+                            className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl bg-white border
+                                     border-gray-200 hover:border-green-500 focus:border-green-500 
+                                     focus:ring-0 transition-all duration-200"
+                            placeholder={`Unesite ${field.label.toLowerCase()}`}
+                          />
+                        </div>
+                        {errors[field.id] && (
+                          <p className="mt-1 text-[11px] sm:text-sm text-red-500 flex items-center">
+                            <svg className="w-3 h-3 sm:w-4 sm:h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {errors[field.id]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Navigation */}
+            <div className="px-3 sm:px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+              {step > 1 ? (
+                <button
+                  onClick={handleBack}
+                  className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 
+                           hover:text-gray-900 transition-colors focus:outline-none rounded-lg"
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Nazad
+                </button>
+              ) : (
+                <div />
+              )}
+              
               <button
-                onClick={handleBack}
-                className="flex items-center px-6 py-2 text-gray-600 hover:text-gray-900 
-                  transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 
-                  focus:ring-green-500"
+                onClick={handleNext}
+                disabled={isLoading}
+                className={`
+                  flex items-center px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm rounded-lg text-white 
+                  transition-all duration-200
+                  ${!isStepComplete(step) 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-sm'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                `}
               >
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" />
-                </svg>
-                Nazad
+                {getButtonText()}
               </button>
-            ) : <div />}
-            
-            <button
-              onClick={handleNext}
-              disabled={isLoading}
-              className={`
-                flex items-center px-8 py-3 rounded-xl text-white transition-all duration-200
-                ${!isStepComplete(step) 
-                  ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' 
-                  : 'bg-green-500 hover:bg-green-600'
-                }
-                disabled:opacity-50 disabled:cursor-not-allowed
-                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-              `}
-            >
-              {getButtonText()}
-            </button>
+            </div>
           </div>
         </div>
       </div>
