@@ -81,11 +81,12 @@ const Services = ({ workerId }) => {
   // Generiši opcije za trajanje usluge na osnovu time_slot-a radnika
   const getDurationOptions = () => {
     if (!worker?.time_slot) return [];
-    const timeSlot = parseInt(worker.time_slot);
+    
+    const timeSlot = Math.abs(parseInt(worker.time_slot));
     const maxDuration = 180; // Maksimalno trajanje od 3 sata
     const options = [];
     
-    for (let duration = timeSlot; duration <= maxDuration; duration += timeSlot) {
+    for (let duration = timeSlot; duration <= maxDuration && options.length < 20; duration += timeSlot) {
       options.push(duration);
     }
     
@@ -105,23 +106,26 @@ const Services = ({ workerId }) => {
 
       let response;
       if (selectedService) {
-        response = await axios.put(`${import.meta.env.VITE_API_URL}/services/${selectedService.id}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+        response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/services/${selectedService.id}`, 
+          payload,
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
       } else {
-        response = await axios.post(`${import.meta.env.VITE_API_URL}/services`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
+        response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/services`, 
+          payload,
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
       }
 
       setIsModalOpen(false);
-      fetchServices();
+      await fetchServices(); // Osvežavamo listu usluga
       resetForm();
     } catch (error) {
       console.error('Error submitting service:', error.response?.data);
       if (error.response?.data?.errors) {
         const serverErrors = error.response.data.errors;
-        // Transformiši greške u format koji očekuje frontend
         const formattedErrors = {};
         Object.keys(serverErrors).forEach(key => {
           formattedErrors[key] = Array.isArray(serverErrors[key]) 
@@ -140,12 +144,14 @@ const Services = ({ workerId }) => {
   const handleDelete = async (serviceId) => {
     if (window.confirm('Da li ste sigurni da želite da obrišete ovu uslugu?')) {
       try {
-        await axios.delete(`${import.meta.env.VITE_API_URL}/services/${serviceId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        fetchServices();
+        await axios.delete(
+          `${import.meta.env.VITE_API_URL}/services/${serviceId}`,
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        await fetchServices(); // Osvežavamo listu nakon brisanja
       } catch (error) {
         console.error('Error deleting service:', error);
+        alert('Došlo je do greške prilikom brisanja usluge.');
       }
     }
   };
