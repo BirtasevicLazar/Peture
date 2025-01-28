@@ -421,12 +421,13 @@ const WorkSchedule = ({ workerId }) => {
                                 name="has_break"
                                 checked={scheduleFormData.has_break}
                                 onChange={handleInputChange}
-                                className="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 appearance-none cursor-pointer
-                                         checked:right-0 checked:border-green-500 checked:bg-green-500"
+                                className="absolute block w-4 h-4 rounded-full bg-white border-2 appearance-none cursor-pointer
+                                         right-0 checked:right-0 checked:border-green-500 checked:bg-green-500 transition-all duration-200"
                               />
                               <label
                                 htmlFor="has_break"
-                                className="toggle-label block h-4 rounded-full bg-gray-300 cursor-pointer"
+                                className="block h-4 w-8 rounded-full bg-gray-300 cursor-pointer transition-colors duration-200
+                                         peer-checked:bg-green-100"
                               ></label>
                             </div>
                           </div>
@@ -500,20 +501,6 @@ const WorkSchedule = ({ workerId }) => {
           </div>
         )}
       </AnimatePresence>
-
-      <style jsx>{`
-        .toggle-checkbox:checked {
-          right: 0;
-          border-color: #10B981;
-          background-color: #10B981;
-        }
-        .toggle-label {
-          transition: background-color 0.2s ease-in;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-          background-color: #D1FAE5;
-        }
-      `}</style>
     </div>
   );
 };

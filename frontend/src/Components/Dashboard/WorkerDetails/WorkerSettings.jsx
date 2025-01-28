@@ -10,8 +10,11 @@ const WorkerSettings = ({ worker, onUpdate }) => {
     ime: '',
     prezime: '',
     email: '',
-    telefon: ''
+    telefon: '',
+    profile_image: null
   });
+
+  const [previewImage, setPreviewImage] = useState(null);
 
   useEffect(() => {
     if (worker) {
@@ -19,8 +22,13 @@ const WorkerSettings = ({ worker, onUpdate }) => {
         ime: worker.ime || '',
         prezime: worker.prezime || '',
         email: worker.email || '',
-        telefon: worker.telefon || ''
+        telefon: worker.telefon || '',
+        profile_image: null
       });
+      // Postavi preview slike ako radnik ima sliku
+      if (worker.profile_image) {
+        setPreviewImage(`${import.meta.env.VITE_API_URL}/worker-image/${worker.profile_image.split('/').pop()}`);
+      }
     }
   }, [worker]);
 
@@ -30,25 +38,43 @@ const WorkerSettings = ({ worker, onUpdate }) => {
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, profile_image: file }));
+      // Kreiraj preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrors({});
 
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/workers/${worker.id}`,
-        {
-          ime: formData.ime,
-          prezime: formData.prezime,
-          email: formData.email,
-          telefon: formData.telefon || '',
-          time_slot: worker.time_slot
-        },
+      const formDataToSend = new FormData();
+      formDataToSend.append('ime', formData.ime);
+      formDataToSend.append('prezime', formData.prezime);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('telefon', formData.telefon || '');
+      formDataToSend.append('time_slot', worker.time_slot);
+      
+      if (formData.profile_image) {
+        formDataToSend.append('profile_image', formData.profile_image);
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/workers/${worker.id}?_method=PUT`,
+        formDataToSend,
         { 
           headers: { 
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
+            'Content-Type': 'multipart/form-data',
             'Accept': 'application/json'
           } 
         }
@@ -91,6 +117,37 @@ const WorkerSettings = ({ worker, onUpdate }) => {
     <div className="w-full pt-6">
       {/* Worker Info Card */}
       <div className="px-4 space-y-3">
+        {/* Profilna slika */}
+        <div className="bg-white p-6 shadow-sm border border-gray-100 rounded-lg">
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              {previewImage ? (
+                <img 
+                  src={previewImage} 
+                  alt={`${worker?.ime} ${worker?.prezime}`}
+                  className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-green-400/80 to-blue-500/80 
+                            flex items-center justify-center text-white text-2xl font-light shadow-lg">
+                  {worker?.ime?.[0]}{worker?.prezime?.[0]}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 inline-flex items-center px-4 py-2 text-sm text-green-600 bg-green-50 
+                       hover:bg-green-100 rounded-lg transition-colors duration-200"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Promeni sliku
+            </button>
+          </div>
+        </div>
+
         {/* Info sekcije */}
         <div className="bg-white p-3 shadow-sm border border-gray-100 rounded-lg">
           <h4 className="text-sm font-normal text-gray-500 mb-3 text-center">Osnovni podaci</h4>
@@ -181,14 +238,13 @@ const WorkerSettings = ({ worker, onUpdate }) => {
             <div className="flex items-center justify-center min-h-screen">
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-lg bg-white rounded-lg shadow-xl p-4 text-left transform transition-all mx-4"
+                className="w-full max-w-lg bg-white rounded-lg shadow-xl p-6 text-left transform transition-all"
               >
                 {/* Modal Header */}
                 <div className="text-center mb-6 relative">
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="absolute right-0 top-0 text-gray-400 hover:text-gray-500 
-                             transition-colors duration-200"
+                    className="absolute right-0 top-0 text-gray-400 hover:text-gray-500"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -197,11 +253,48 @@ const WorkerSettings = ({ worker, onUpdate }) => {
                   <h3 className="text-xl font-semibold text-gray-900">
                     Izmena podataka radnika
                   </h3>
-                  <p className="mt-2 text-sm text-gray-500">
-                    Izmenite osnovne informacije o radniku
-                  </p>
                 </div>
 
+                {/* Image Upload Section */}
+                <div className="mb-6">
+                  <div className="flex flex-col items-center">
+                    <div className="relative mb-4">
+                      {previewImage ? (
+                        <img 
+                          src={previewImage} 
+                          alt="Preview"
+                          className="h-32 w-32 rounded-full object-cover border-4 border-white shadow-lg"
+                        />
+                      ) : (
+                        <div className="h-32 w-32 rounded-full bg-gradient-to-br from-green-400/80 to-blue-500/80 
+                                    flex items-center justify-center text-white text-3xl font-light shadow-lg">
+                          {worker?.ime?.[0]}{worker?.prezime?.[0]}
+                        </div>
+                      )}
+                    </div>
+                    <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-white border 
+                                  border-gray-300 rounded-lg shadow-sm text-sm text-gray-700 
+                                  hover:bg-gray-50 focus-within:ring-2 focus-within:ring-green-500 
+                                  focus-within:ring-offset-2">
+                      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Izaberi sliku
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                    {errors.profile_image && (
+                      <p className="mt-2 text-sm text-red-600">{errors.profile_image}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Rest of the form */}
                 {errors.general && (
                   <div className="mb-6 p-4 bg-red-50 rounded-xl border border-red-100 text-center">
                     <p className="text-sm text-red-700">{errors.general}</p>

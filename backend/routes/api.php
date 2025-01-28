@@ -7,6 +7,7 @@ use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AppointmentController;
+use Illuminate\Support\Facades\Storage;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -25,6 +26,20 @@ Route::get('/salon/{slug}', function($slug) {
 
 Route::get('/appointments/available', [AppointmentController::class, 'getAvailableAppointments']);
 Route::post('/appointments/book', [AppointmentController::class, 'bookAppointment']);
+
+// Ruta za serviranje slika
+Route::get('/worker-image/{filename}', function ($filename) {
+    $path = 'worker-images/' . $filename;
+    
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json(['message' => 'Image not found'], 404);
+    }
+    
+    $file = Storage::disk('public')->get($path);
+    $type = Storage::disk('public')->mimeType($path);
+    
+    return response($file, 200)->header('Content-Type', $type);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
