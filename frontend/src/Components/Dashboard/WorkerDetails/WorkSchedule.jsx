@@ -136,19 +136,19 @@ const WorkSchedule = ({ workerId }) => {
   };
 
   return (
-    <div>
+    <div className="h-full w-full p-3">
       {/* Schedule Container */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-white shadow-sm w-full">
         {/* Desktop prikaz */}
-        <div className="hidden lg:block">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+        <div className="hidden lg:block w-full">
+          <div className="w-full">
+            <table className="w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dan</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Radno vreme</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dan</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Radno vreme</th>
+                  <th className="px-4 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -220,14 +220,14 @@ const WorkSchedule = ({ workerId }) => {
         </div>
 
         {/* Mobilni prikaz */}
-        <div className="lg:hidden">
-          <div className="grid grid-cols-1 gap-4 p-4">
-            {daysOfWeek.map((day) => {
+        <div className="lg:hidden w-full">
+          <div className="divide-y divide-gray-200">
+            {daysOfWeek.map(day => {
               const schedule = getScheduleForDay(day.id);
               return (
                 <div
                   key={day.id}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-4"
+                  className="p-3 hover:bg-gray-50 transition-colors duration-200"
                 >
                   <div className="flex flex-col space-y-4">
                     {/* Dan i Status */}

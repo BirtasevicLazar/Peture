@@ -88,22 +88,15 @@ const WorkerSettings = ({ worker, onUpdate }) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 sm:px-6">
+    <div className="h-full w-full">
       {/* Worker Info Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header */}
-        <div className="p-4 sm:p-6 border-b border-gray-100">
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-900 text-center">
-            Informacije o radniku
-          </h3>
-        </div>
-
+      <div className="w-full">
         {/* Info sekcije */}
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-3 space-y-3">
           {/* Osnovni podaci */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h4 className="text-sm font-medium text-gray-500 mb-4 text-center">Osnovni podaci</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white p-3 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-500 mb-3 text-center">Osnovni podaci</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <span className="text-xs text-gray-500">Ime</span>
                 <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-gray-200">
@@ -128,9 +121,9 @@ const WorkerSettings = ({ worker, onUpdate }) => {
           </div>
 
           {/* Kontakt informacije */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h4 className="text-sm font-medium text-gray-500 mb-4 text-center">Kontakt informacije</h4>
-            <div className="space-y-4">
+          <div className="bg-white p-3 shadow-sm">
+            <h4 className="text-sm font-medium text-gray-500 mb-3 text-center">Kontakt informacije</h4>
+            <div className="space-y-3">
               <div className="space-y-1">
                 <span className="text-xs text-gray-500">Email</span>
                 <div className="flex items-center gap-2 bg-white rounded-lg p-3 border border-gray-200">
@@ -155,11 +148,11 @@ const WorkerSettings = ({ worker, onUpdate }) => {
           </div>
 
           {/* Akcije */}
-          <div className="flex flex-col gap-3 pt-4">
+          <div className="flex flex-col gap-2 pt-3">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="w-full inline-flex items-center justify-center px-4 py-3 text-sm 
-                       font-medium text-green-600 bg-green-50 rounded-xl hover:bg-green-100 
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm 
+                       font-medium text-green-600 bg-green-50 hover:bg-green-100 
                        transition-all duration-200"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,8 +163,8 @@ const WorkerSettings = ({ worker, onUpdate }) => {
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full inline-flex items-center justify-center px-4 py-3 text-sm 
-                       font-medium text-red-600 bg-red-50 rounded-xl hover:bg-red-100 
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm 
+                       font-medium text-red-600 bg-red-50 hover:bg-red-100 
                        transition-all duration-200"
             >
               <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

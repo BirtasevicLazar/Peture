@@ -64,7 +64,7 @@ const WorkerDetails = ({ workerId }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
       </div>
     );
@@ -72,7 +72,7 @@ const WorkerDetails = ({ workerId }) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="text-center">
           <svg className="mx-auto h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
@@ -85,14 +85,15 @@ const WorkerDetails = ({ workerId }) => {
   }
 
   return (
-    <div className="h-full pb-20 lg:pb-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="h-full flex flex-col w-full relative">
       {/* Tabs */}
-      <div className="relative">
+      <div className="bg-white shadow-sm flex-shrink-0">
         <div className="sm:hidden">
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
-            className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-green-500 focus:outline-none focus:ring-green-500 sm:text-sm"
+            className="w-full py-3 pl-3 pr-10 text-base focus:border-green-500 focus:outline-none 
+                     focus:ring-green-500 sm:text-sm border-b border-gray-200 bg-white"
           >
             {tabs.map((tab) => (
               <option key={tab.id} value={tab.id}>
@@ -103,48 +104,48 @@ const WorkerDetails = ({ workerId }) => {
         </div>
         
         <div className="hidden sm:block">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm
-                    ${activeTab === tab.id
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }
-                    transition-all duration-200 focus:outline-none
-                  `}
-                >
-                  <span className={`
-                    ${activeTab === tab.id
-                      ? 'text-green-500'
-                      : 'text-gray-400 group-hover:text-gray-500'
-                    }
-                    mr-2 transition-colors duration-200
-                  `}>
-                    {tab.icon}
-                  </span>
-                  {tab.name}
-                </button>
-              ))}
-            </nav>
-          </div>
+          <nav className="flex" aria-label="Tabs">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  flex-1 group inline-flex items-center justify-center py-4 px-1 border-b-2 font-medium text-sm
+                  ${activeTab === tab.id
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }
+                  transition-all duration-200 focus:outline-none
+                `}
+              >
+                <span className={`
+                  ${activeTab === tab.id
+                    ? 'text-green-500'
+                    : 'text-gray-400 group-hover:text-gray-500'
+                  }
+                  mr-2 transition-colors duration-200
+                `}>
+                  {tab.icon}
+                </span>
+                {tab.name}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
 
-      {/* Tab sadržaj sa animacijom */}
-      <div className="mt-6 animate-fadeIn">
-        {activeTab === 'schedule' && <WorkSchedule workerId={workerId} />}
-        {activeTab === 'services' && <Services workerId={workerId} />}
-        {activeTab === 'timeSlot' && worker && (
-          <TimeSlotSettings workerId={workerId} initialTimeSlot={worker.time_slot} />
-        )}
-        {activeTab === 'settings' && worker && (
-          <WorkerSettings worker={worker} onUpdate={handleWorkerUpdate} />
-        )}
+      {/* Tab sadržaj */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 min-h-0">
+        <div className="min-h-full w-full pb-20 md:pb-0">
+          {activeTab === 'schedule' && <WorkSchedule workerId={workerId} />}
+          {activeTab === 'services' && <Services workerId={workerId} />}
+          {activeTab === 'timeSlot' && worker && (
+            <TimeSlotSettings workerId={workerId} initialTimeSlot={worker.time_slot} />
+          )}
+          {activeTab === 'settings' && worker && (
+            <WorkerSettings worker={worker} onUpdate={handleWorkerUpdate} />
+          )}
+        </div>
       </div>
     </div>
   );
