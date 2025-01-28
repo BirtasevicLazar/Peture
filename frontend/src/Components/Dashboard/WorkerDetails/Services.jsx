@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Services = ({ workerId }) => {
   // State za usluge
@@ -158,291 +159,314 @@ const Services = ({ workerId }) => {
   }, [workerId]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4">
-      {/* Error Display */}
-      {errors.general && (
-        <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-sm text-red-700">{errors.general}</p>
+    <div className="min-h-full w-full bg-gray-50/50">
+      <div className="max-w-7xl mx-auto pt-6">
+        {/* Desktop prikaz */}
+        <div className="hidden lg:block px-4 pb-4">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+            <table className="w-full">
+              <thead className="bg-gray-50/50">
+                <tr>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Naziv</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opis</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cena</th>
+                  <th className="px-4 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trajanje</th>
+                  <th className="px-4 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {services.map((service, index) => (
+                  <tr 
+                    key={service.id} 
+                    className={`group hover:bg-gray-50/50 transition-all duration-200 ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+                    }`}
+                  >
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-gray-900">{service.naziv}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-gray-500 line-clamp-2">{service.opis || '-'}</div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-normal bg-green-50 text-green-700">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {service.cena} RSD
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-normal bg-blue-50 text-blue-700">
+                        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {service.trajanje} min
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-right">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          onClick={() => handleOpenServiceModal(service)}
+                          className="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-green-700 
+                                   bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                        >
+                          <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Izmeni
+                        </button>
+                        <button
+                          onClick={() => handleDeleteService(service.id)}
+                          className="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-red-700 
+                                   bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-200"
+                        >
+                          <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Obriši
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
 
-      {/* Services Container */}
-      <div className="space-y-4">
-        {/* Desktop table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="hidden md:block">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Naziv</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opis</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cena (RSD)</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trajanje (min)</th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcije</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {services.map((service) => (
-                    <tr key={service.id} className="hover:bg-gray-50 transition-colors duration-150">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{service.naziv}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-500 line-clamp-2">{service.opis || '-'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {service.cena} RSD
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {service.trajanje} min
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-3">
-                          <button
-                            onClick={() => handleOpenServiceModal(service)}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-600 
-                                     bg-green-50 rounded-lg hover:bg-green-100 transition-all duration-200"
-                          >
-                            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            Izmeni
-                          </button>
-                          <button
-                            onClick={() => handleDeleteService(service.id)}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 
-                                     bg-red-50 rounded-lg hover:bg-red-100 transition-all duration-200"
-                          >
-                            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Obriši
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mobile view */}
-          <div className="md:hidden divide-y divide-gray-200">
+        {/* Mobilni prikaz */}
+        <div className="lg:hidden">
+          <div className="space-y-3">
             {services.map((service) => (
-              <div key={service.id} className="p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">{service.naziv}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{service.opis || '-'}</p>
+              <div
+                key={service.id}
+                className="bg-white shadow-sm border-b border-gray-100"
+              >
+                <div className="px-4 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h3 className="text-sm text-gray-900">{service.naziv}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{service.opis || '-'}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleOpenServiceModal(service)}
+                        className="p-1.5 text-green-600 hover:text-green-700"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteService(service.id)}
+                        className="p-1.5 text-red-600 hover:text-red-700"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <div className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {service.cena} RSD
-                  </div>
-                  <div className="inline-flex items-center px-2.5 py-1.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {service.trajanje} min
-                  </div>
-                </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex items-center p-2 bg-gray-50 rounded-lg">
+                      <div className="w-6 h-6 rounded-md bg-green-50 flex items-center justify-center mr-2">
+                        <svg className="w-3.5 h-3.5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Cena</span>
+                        <div className="text-sm text-gray-900">{service.cena} RSD</div>
+                      </div>
+                    </div>
 
-                <div className="flex justify-end gap-2 pt-3">
-                  <button
-                    onClick={() => handleOpenServiceModal(service)}
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-600 
-                             bg-green-50 rounded-lg hover:bg-green-100 transition-all duration-200"
-                  >
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                    Izmeni
-                  </button>
-                  <button
-                    onClick={() => handleDeleteService(service.id)}
-                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-600 
-                             bg-red-50 rounded-lg hover:bg-red-100 transition-all duration-200"
-                  >
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Obriši
-                  </button>
+                    <div className="flex items-center p-2 bg-gray-50 rounded-lg">
+                      <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center mr-2">
+                        <svg className="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500">Trajanje</span>
+                        <div className="text-sm text-gray-900">{service.trajanje} min</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Add Service Button */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Dugme za dodavanje */}
+        <div className="px-4 mt-4">
           <button
             onClick={() => handleOpenServiceModal()}
-            className="w-full flex items-center justify-center gap-2 px-6 py-4 
-                     bg-white hover:bg-gray-50 text-green-600 transition-colors duration-200"
+            className="w-full flex items-center justify-center gap-2 p-3 
+                     bg-white hover:bg-gray-50 text-green-600 border border-gray-100 rounded-xl
+                     transition-colors duration-200 shadow-sm"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span className="text-sm font-medium">Dodaj novu uslugu</span>
+            <span className="text-sm">Dodaj novu uslugu</span>
           </button>
         </div>
-      </div>
 
-      {/* Service Modal */}
-      {isServiceModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-500 bg-opacity-75">
-          <div className="min-h-screen px-4 text-center">
-            <div className="flex items-center justify-center min-h-screen">
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 text-left 
-                         transform transition-all mx-auto"
-              >
-                <div className="flex items-center justify-between mb-6 border-b pb-3">
-                  <h3 className="text-xl font-medium text-gray-900">
-                    {selectedService ? 'Izmeni uslugu' : 'Dodaj uslugu'}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      setIsServiceModalOpen(false);
-                      resetServiceForm();
-                    }}
-                    className="rounded-full p-1 text-gray-400 hover:text-gray-500 hover:bg-gray-100 
-                             focus:outline-none transition-colors duration-200"
-                  >
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-                  <form onSubmit={handleServiceSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Naziv <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="naziv"
-                        value={serviceFormData.naziv}
-                        onChange={handleServiceInputChange}
-                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
-                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
-                        placeholder="Unesite naziv usluge"
-                      />
-                      {errors.naziv && <p className="mt-1 text-sm text-red-600">{errors.naziv}</p>}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Opis</label>
-                      <textarea
-                        name="opis"
-                        value={serviceFormData.opis}
-                        onChange={handleServiceInputChange}
-                        rows="3"
-                        className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
-                                 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
-                        placeholder="Unesite opis usluge"
-                      />
-                      {errors.opis && <p className="mt-1 text-sm text-red-600">{errors.opis}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+        {/* Modal */}
+        <AnimatePresence>
+          {isServiceModalOpen && (
+            <div 
+              className="fixed inset-0 z-50 overflow-y-auto bg-gray-500/75 backdrop-blur-sm"
+            >
+              <div className="min-h-screen px-4 text-center flex items-center justify-center">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-4 text-left mx-auto"
+                >
+                  {/* Modal header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cena (RSD) <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="number"
-                          name="cena"
-                          value={serviceFormData.cena}
-                          onChange={handleServiceInputChange}
-                          min="0"
-                          step="0.01"
-                          className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
-                                   focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
-                          placeholder="0.00"
-                        />
-                        {errors.cena && <p className="mt-1 text-sm text-red-600">{errors.cena}</p>}
+                        <h3 className="text-base font-medium text-gray-900">
+                          {selectedService ? 'Izmeni uslugu' : 'Dodaj uslugu'}
+                        </h3>
+                        <p className="text-xs text-gray-500">Popunite detalje o usluzi</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsServiceModalOpen(false);
+                        resetServiceForm();
+                      }}
+                      className="p-2 -m-2 text-gray-400 hover:text-gray-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Modal body */}
+                  <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+                    <form onSubmit={handleServiceSubmit} className="space-y-4">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">
+                            Naziv <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="naziv"
+                            value={serviceFormData.naziv}
+                            onChange={handleServiceInputChange}
+                            className="w-full p-2 text-sm rounded-lg border border-gray-300 focus:ring-1
+                                     focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                            placeholder="Unesite naziv usluge"
+                          />
+                          {errors.naziv && <p className="mt-1 text-xs text-red-600">{errors.naziv}</p>}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Opis</label>
+                          <textarea
+                            name="opis"
+                            value={serviceFormData.opis}
+                            onChange={handleServiceInputChange}
+                            rows="3"
+                            className="w-full p-2 text-sm rounded-lg border border-gray-300 focus:ring-1
+                                     focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                            placeholder="Unesite opis usluge"
+                          />
+                          {errors.opis && <p className="mt-1 text-xs text-red-600">{errors.opis}</p>}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">
+                              Cena (RSD) <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              name="cena"
+                              value={serviceFormData.cena}
+                              onChange={handleServiceInputChange}
+                              min="0"
+                              step="0.01"
+                              className="w-full p-2 text-sm rounded-lg border border-gray-300 focus:ring-1
+                                       focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                              placeholder="0.00"
+                            />
+                            {errors.cena && <p className="mt-1 text-xs text-red-600">{errors.cena}</p>}
+                          </div>
+
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">
+                              Trajanje (min) <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              name="trajanje"
+                              value={serviceFormData.trajanje}
+                              onChange={handleServiceInputChange}
+                              className="w-full p-2 text-sm rounded-lg border border-gray-300 focus:ring-1
+                                       focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                            >
+                              {getDurationOptions().map((duration) => (
+                                <option key={duration} value={duration}>
+                                  {duration} minuta
+                                </option>
+                              ))}
+                            </select>
+                            {errors.trajanje && <p className="mt-1 text-xs text-red-600">{errors.trajanje}</p>}
+                          </div>
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Trajanje (min) <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          name="trajanje"
-                          value={serviceFormData.trajanje}
-                          onChange={handleServiceInputChange}
-                          className="w-full p-2.5 rounded-xl border border-gray-300 focus:ring-2 
-                                   focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                      {/* Modal footer */}
+                      <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsServiceModalOpen(false);
+                            resetServiceForm();
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 
+                                   rounded-lg hover:bg-gray-50 transition-colors duration-200"
                         >
-                          {getDurationOptions().map((duration) => (
-                            <option key={duration} value={duration}>
-                              {duration} minuta
-                            </option>
-                          ))}
-                        </select>
-                        {errors.trajanje && <p className="mt-1 text-sm text-red-600">{errors.trajanje}</p>}
+                          Otkaži
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg 
+                                   hover:bg-green-700 transition-colors duration-200"
+                        >
+                          {selectedService ? 'Sačuvaj' : 'Dodaj'}
+                        </button>
                       </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsServiceModalOpen(false);
-                          resetServiceForm();
-                        }}
-                        className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 
-                                 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                                 focus:ring-green-500 transition-all duration-200"
-                      >
-                        Otkaži
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl 
-                                 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 
-                                 focus:ring-green-500 transition-all duration-200"
-                      >
-                        {selectedService ? 'Sačuvaj' : 'Dodaj'}
-                      </button>
-                    </div>
-                  </form>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
