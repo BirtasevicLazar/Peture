@@ -82,41 +82,45 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-4">
+    <div className="w-full pt-6">
       {/* Current Setting Info */}
-      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-            <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">
-              Trenutno: {Math.abs(timeSlot)} min {parseInt(timeSlot) < 0 ? '(dinamično)' : '(fiksno)'}
-            </p>
+      <div className="mb-3 px-4">
+        <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+              <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-gray-900">
+                {Math.abs(timeSlot)} min {parseInt(timeSlot) < 0 ? '(dinamično)' : '(fiksno)'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Error Display */}
       {errors.time_slot && (
-        <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-              <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+        <div className="mb-3 px-4">
+          <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-sm text-red-700">{errors.time_slot}</p>
             </div>
-            <p className="text-sm text-red-700">{errors.time_slot}</p>
           </div>
         </div>
       )}
 
       {/* Time Slots Grid */}
-      <div className="space-y-4">
+      <div className="space-y-3 px-4">
         {/* Classic View */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white shadow-sm border border-gray-100 rounded-lg overflow-hidden">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
@@ -125,13 +129,13 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Fiksni intervali</h3>
+                <h3 className="text-sm text-gray-900">Fiksni intervali</h3>
                 <p className="text-xs text-gray-500">Standardni termini</p>
               </div>
             </div>
           </div>
           <div className="p-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {[10, 15, 20, 30, 60].map(value => (
                 <button
                   key={value}
@@ -147,12 +151,12 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center
                       ${parseInt(timeSlot) === value ? 'bg-green-500' : 'bg-gray-100'}`}
                     >
-                      <span className={`text-sm font-medium ${parseInt(timeSlot) === value ? 'text-white' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-normal ${parseInt(timeSlot) === value ? 'text-white' : 'text-gray-900'}`}>
                         {value}
                       </span>
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-xs font-medium text-gray-900">min</p>
+                      <p className="text-xs font-normal text-gray-900">min</p>
                       <p className="text-xs text-gray-500 truncate">
                         {value === 10 && "Brze"}
                         {value === 15 && "Kratke"}
@@ -174,7 +178,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
         </div>
 
         {/* Dynamic View */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white shadow-sm border border-gray-100 rounded-lg overflow-hidden">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -184,13 +188,13 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                 </svg>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Dinamični intervali</h3>
+                <h3 className="text-sm text-gray-900">Dinamični intervali</h3>
                 <p className="text-xs text-gray-500">Prema trajanju usluge</p>
               </div>
             </div>
           </div>
           <div className="p-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {[10, 15, 20, 30, 60].map(value => (
                 <button
                   key={-value}
@@ -206,12 +210,12 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center
                       ${parseInt(timeSlot) === -value ? 'bg-blue-500' : 'bg-gray-100'}`}
                     >
-                      <span className={`text-sm font-medium ${parseInt(timeSlot) === -value ? 'text-white' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-normal ${parseInt(timeSlot) === -value ? 'text-white' : 'text-gray-900'}`}>
                         {value}
                       </span>
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="text-xs font-medium text-gray-900">min</p>
+                      <p className="text-xs font-normal text-gray-900">min</p>
                       <p className="text-xs text-gray-500 truncate">
                         {value === 10 && "Flex brze"}
                         {value === 15 && "Flex kratke"}
@@ -234,7 +238,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
 
         {/* Services Warning */}
         {hasServices && (
-          <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+          <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex-shrink-0 flex items-center justify-center">
                 <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,7 +247,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-amber-900">Napomena</h4>
+                <h4 className="text-sm font-normal text-amber-900">Napomena</h4>
                 <p className="mt-1 text-xs text-amber-700">
                   Zbog postojećih usluga, možete samo promeniti način rada za trenutnu 
                   dužinu termina od {Math.abs(timeSlot)} minuta.
@@ -262,7 +266,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                  aria-hidden="true"
                  onClick={() => !loading && setShowConfirmModal(false)}></div>
 
-            <div className="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all w-full max-w-sm mx-auto">
+            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all w-full max-w-sm mx-auto">
               <div className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
@@ -272,7 +276,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900">
+                    <h3 className="text-sm font-normal text-gray-900">
                       Promena načina rada
                     </h3>
                     <p className="mt-1 text-xs text-gray-500">
@@ -288,7 +292,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                   type="button"
                   disabled={loading}
                   onClick={handleConfirmTimeSlotChange}
-                  className={`flex-1 sm:flex-none inline-flex justify-center items-center rounded-lg px-3 py-2 text-sm font-medium text-white
+                  className={`flex-1 sm:flex-none inline-flex justify-center items-center rounded-lg px-3 py-2 text-sm font-normal text-white
                     ${loading
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-green-600 hover:bg-green-500 focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
@@ -309,7 +313,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
                   type="button"
                   disabled={loading}
                   onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 sm:flex-none inline-flex justify-center rounded-lg px-3 py-2 text-sm font-medium text-gray-900 
+                  className="flex-1 sm:flex-none inline-flex justify-center rounded-lg px-3 py-2 text-sm font-normal text-gray-900 
                            bg-white hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 focus:ring-green-500
                            transition-all duration-200 border border-gray-300"
                 >

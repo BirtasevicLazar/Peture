@@ -470,7 +470,7 @@ const Dashboard = () => {
                       </svg>
                       <span>Radnik</span>
                     </div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-normal text-gray-900">
                       {selectedWorker.ime} {selectedWorker.prezime}
                     </p>
                   </div>

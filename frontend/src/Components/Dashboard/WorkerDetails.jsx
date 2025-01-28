@@ -47,7 +47,7 @@ const WorkerDetails = ({ workerId }) => {
               d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     )},
-    { id: 'timeSlot', name: 'Termini', icon: (
+    { id: 'timeSlot', name: 'Intervali', icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -78,7 +78,7 @@ const WorkerDetails = ({ workerId }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{error}</h3>
+          <h3 className="mt-2 text-sm text-gray-900">{error}</h3>
         </div>
       </div>
     );
@@ -110,7 +110,7 @@ const WorkerDetails = ({ workerId }) => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex-1 group inline-flex items-center justify-center py-4 px-1 border-b-2 font-medium text-sm
+                  flex-1 group inline-flex items-center justify-center py-4 px-1 border-b-2 text-sm
                   ${activeTab === tab.id
                     ? 'border-green-500 text-green-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
