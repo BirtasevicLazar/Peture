@@ -376,11 +376,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50/50">
       {/* Top Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/80 fixed w-full top-0 z-40">
-        <div className="px-4">
-          <div className="flex justify-between h-16">
+      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/80 fixed w-full top-0 z-40 h-16">
+        <div className="h-full px-4">
+          <div className="flex justify-between h-full">
             <div className="flex items-center">
               {selectedWorker ? (
                 <button
@@ -389,7 +389,7 @@ const Dashboard = () => {
                     setSelectedWorker(null);
                     setActiveSubmenu(null);
                   }}
-                  className="lg:hidden inline-flex items-center p-2 rounded-xl text-gray-400 hover:text-gray-500 
+                  className="lg:hidden inline-flex items-center p-2 text-gray-400 hover:text-gray-500 
                            hover:bg-gray-100/80 transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -406,13 +406,13 @@ const Dashboard = () => {
             
             <div className="flex items-center space-x-4">
               {selectedWorker && (
-                <span className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5 rounded-lg">
+                <span className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5">
                   {selectedWorker.ime} {selectedWorker.prezime}
                 </span>
               )}
               <button
                 onClick={handleLogout}
-                className="lg:hidden inline-flex items-center p-2 rounded-xl text-gray-400 hover:text-gray-500 
+                className="lg:hidden inline-flex items-center p-2 text-gray-400 hover:text-gray-500 
                          hover:bg-gray-100/80 transition-colors"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -425,18 +425,17 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <div className="flex h-screen pt-16">
+      <div className="flex h-[100dvh] pt-16 pb-16 lg:pb-0">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden lg:block w-72 bg-white/80 backdrop-blur-sm border-r border-gray-200/80 overflow-y-auto">
-          <div className="flex flex-col h-full justify-between">
-            <nav className="mt-6 px-3 space-y-2">
+        <div className="hidden lg:block w-72 bg-white/80 backdrop-blur-sm border-r border-gray-200/80">
+          <div className="flex flex-col h-full">
+            <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
                     setActiveComponent(item.id);
                     setSelectedWorker(null);
-                    setIsMobileMenuOpen(false);
                   }}
                   className={`${
                     activeComponent === item.id && !selectedWorker
@@ -505,14 +504,9 @@ const Dashboard = () => {
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 
-                         bg-white hover:bg-red-50 rounded-xl transition-all duration-200 border border-red-100"
+                         bg-white hover:bg-red-50 border border-red-100"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -523,69 +517,55 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-transparent p-4 lg:p-8 pb-20 lg:pb-8">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto bg-transparent">
+          <div className="h-full">
             {renderMainContent()}
           </div>
         </main>
 
         {/* Mobile Bottom Navigation - hidden on desktop */}
-        {!selectedWorker ? (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40">
-            <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
-              {menuItems.map((item) => (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40 h-16">
+          <div className="flex justify-evenly items-center h-full px-2">
+            {!selectedWorker ? (
+              menuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => {
                     setActiveComponent(item.id);
                     setSelectedWorker(null);
                   }}
-                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-xl transition-all duration-200
+                  className={`flex flex-col items-center justify-center w-full h-full
                     ${activeComponent === item.id
-                      ? 'text-green-600 bg-green-50'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'text-green-600'
+                      : 'text-gray-600'
                     }`}
                 >
-                  <svg
-                    className="h-6 w-6 mb-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                   </svg>
                   <span className="text-xs font-medium">{item.label}</span>
                 </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40">
-            <div className="flex justify-evenly items-center h-16 px-2 max-w-md mx-auto">
-              {workerSubmenuItems.map((item) => (
+              ))
+            ) : (
+              workerSubmenuItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleSubmenuClick(item.id)}
-                  className={`flex flex-col items-center justify-center w-full py-1 px-3 rounded-xl transition-all duration-200
+                  className={`flex flex-col items-center justify-center w-full h-full
                     ${activeSubmenu === item.id
-                      ? 'text-green-600 bg-green-50'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'text-green-600'
+                      : 'text-gray-600'
                     }`}
                 >
-                  <svg
-                    className="h-6 w-6 mb-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                   </svg>
                   <span className="text-xs font-medium">{item.label}</span>
                 </button>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Logout Confirmation Modal */}

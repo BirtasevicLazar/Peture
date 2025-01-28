@@ -29,7 +29,9 @@ class User extends Authenticatable
         'city',
         'phone',
         'is_active',
-        'remember_token'
+        'remember_token',
+        'salon_image',
+        'description'
     ];
 
     /**

@@ -41,12 +41,24 @@ Route::get('/worker-image/{filename}', function ($filename) {
     return response($file, 200)->header('Content-Type', $type);
 });
 
+// Ruta za serviranje slika
+Route::get('/storage/{path}', function ($path) {
+    if (!Storage::disk('public')->exists($path)) {
+        return response()->json(['message' => 'Image not found'], 404);
+    }
+    
+    $file = Storage::disk('public')->get($path);
+    $type = Storage::disk('public')->mimeType($path);
+    
+    return response($file, 200)->header('Content-Type', $type);
+})->where('path', '.*');
+
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    Route::put('/user/update', [AuthController::class, 'update']);
+    Route::post('/user/update', [AuthController::class, 'update']);
 
     // Workers routes
     Route::get('/workers', [WorkerController::class, 'index']);

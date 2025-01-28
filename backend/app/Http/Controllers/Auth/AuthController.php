@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -119,6 +120,8 @@ class AuthController extends Controller
                 'city' => 'nullable|string|max:100',
                 'phone' => 'nullable|string|max:20',
                 'email' => 'required|email|unique:users,email,' . $user->id,
+                'description' => 'nullable|string|max:1000',
+                'salon_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ], [
                 'salon_name.max' => 'Ime salona ne može biti duže od 100 karaktera',
                 'address.max' => 'Adresa ne može biti duža od 255 karaktera',
@@ -127,7 +130,23 @@ class AuthController extends Controller
                 'email.required' => 'Email adresa je obavezna',
                 'email.email' => 'Uneta email adresa nije validna',
                 'email.unique' => 'Ova email adresa je već registrovana',
+                'description.max' => 'Opis ne može biti duži od 1000 karaktera',
+                'salon_image.image' => 'Fajl mora biti slika',
+                'salon_image.mimes' => 'Slika mora biti u formatu: jpeg, png, jpg ili gif',
+                'salon_image.max' => 'Slika ne može biti veća od 2MB'
             ]);
+
+            // Ako je poslata nova slika
+            if ($request->hasFile('salon_image')) {
+                // Obriši staru sliku ako postoji
+                if ($user->salon_image) {
+                    Storage::disk('public')->delete($user->salon_image);
+                }
+                
+                // Sačuvaj novu sliku
+                $path = $request->file('salon_image')->store('salon-images', 'public');
+                $validatedData['salon_image'] = $path;
+            }
 
             $user->update($validatedData);
 
