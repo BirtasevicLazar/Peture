@@ -610,44 +610,133 @@ const BookingPage = () => {
             <div className="p-3 sm:p-6">
               {/* Step 1 - Worker Selection */}
               {step === 1 && (
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {workers.map(worker => (
                     <button
                       key={worker.id}
                       onClick={() => setSelectedWorker(worker)}
                       className={`
-                        w-full p-3 sm:p-4 rounded-xl text-left transition-all duration-200 border
+                        w-full rounded-xl text-left transition-all duration-200 border overflow-hidden
                         ${selectedWorker?.id === worker.id 
-                          ? 'bg-green-50 border-green-500 shadow-sm' 
-                          : 'bg-white border-gray-200 hover:border-green-500 hover:shadow-sm'}
+                          ? 'bg-green-50 border-green-500 shadow-lg scale-[1.02]' 
+                          : 'bg-white border-gray-200 hover:border-green-500 hover:shadow-md hover:scale-[1.01]'}
                       `}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className={`
-                          w-9 h-9 sm:w-11 sm:h-11 rounded-lg flex items-center justify-center
-                          transition-colors duration-200 shadow-sm text-xs sm:text-sm flex-shrink-0
-                          ${selectedWorker?.id === worker.id 
-                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
-                            : 'bg-gray-50 text-gray-400 group-hover:text-green-500'}
-                        `}>
-                          <span className="font-medium">
-                            {worker.ime[0]}{worker.prezime[0]}
-                          </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className={`
-                            font-medium text-sm sm:text-base truncate transition-colors duration-200
-                            ${selectedWorker?.id === worker.id ? 'text-green-600' : 'text-gray-900'}
-                          `}>
-                            {worker.ime} {worker.prezime}
-                          </h3>
-                          {worker.specijalnost && (
-                            <p className="text-[11px] sm:text-sm text-gray-500 mt-0.5 truncate">
-                              {worker.specijalnost}
-                            </p>
+                      <div className="sm:flex">
+                        {/* Слика и основне информације */}
+                        <div className="relative sm:w-1/3 md:w-1/4">
+                          {worker.profile_image ? (
+                            <img 
+                              src={`${import.meta.env.VITE_API_URL}/worker-image/${worker.profile_image.split('/').pop()}`}
+                              alt={`${worker.ime} ${worker.prezime}`}
+                              className="w-full h-48 sm:h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextElementSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-48 sm:h-full min-h-[12rem] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                              <span className="text-4xl font-medium text-gray-400">
+                                {worker.ime[0]}{worker.prezime[0]}
+                              </span>
+                            </div>
+                          )}
+                          {/* Беџ за искуство */}
+                          {worker.godine_iskustva && (
+                            <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                              {worker.godine_iskustva} година искуства
+                            </div>
                           )}
                         </div>
+
+                        {/* Информације и услуге */}
+                        <div className="flex-1 p-4">
+                          <div className="sm:flex justify-between items-start gap-4">
+                            <div>
+                              <h3 className={`
+                                font-medium text-lg sm:text-xl mb-1
+                                ${selectedWorker?.id === worker.id ? 'text-green-600' : 'text-gray-900'}
+                              `}>
+                                {worker.ime} {worker.prezime}
+                              </h3>
+                              {worker.specijalnost && (
+                                <p className="text-sm text-gray-600 mb-2 flex items-center">
+                                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                  </svg>
+                                  {worker.specijalnost}
+                                </p>
+                              )}
+                              {worker.opis && (
+                                <p className="text-sm text-gray-500 mb-4 line-clamp-2 sm:line-clamp-3">
+                                  {worker.opis}
+                                </p>
+                              )}
+                            </div>
+                            
+                            {/* Радно време */}
+                            {worker.radno_vreme && (
+                              <div className="hidden sm:block text-right text-sm">
+                                <p className="text-gray-600 font-medium mb-1">Радно време</p>
+                                <p className="text-gray-500">{worker.radno_vreme}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Преглед услуга */}
+                          {worker.services && worker.services.length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-sm font-medium text-gray-600 mb-2">Услуге:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {worker.services.slice(0, 4).map(service => (
+                                  <div 
+                                    key={service.id}
+                                    className="bg-gray-50 px-3 py-1.5 rounded-full text-sm text-gray-600 flex items-center"
+                                  >
+                                    <span>{service.naziv}</span>
+                                    <span className="ml-2 text-xs text-gray-400">{service.trajanje}мин</span>
+                                  </div>
+                                ))}
+                                {worker.services.length > 4 && (
+                                  <div className="bg-gray-50 px-3 py-1.5 rounded-full text-sm text-gray-500">
+                                    +{worker.services.length - 4} још
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Додатне информације у гриду */}
+                          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {worker.broj_klijenata && (
+                              <div className="bg-gray-50 p-2 rounded-lg text-center">
+                                <p className="text-lg font-medium text-gray-700">{worker.broj_klijenata}+</p>
+                                <p className="text-xs text-gray-500">задовољних клијената</p>
+                              </div>
+                            )}
+                            {worker.prosecna_ocena && (
+                              <div className="bg-gray-50 p-2 rounded-lg text-center">
+                                <p className="text-lg font-medium text-gray-700">
+                                  {worker.prosecna_ocena}
+                                  <span className="text-yellow-400 ml-1">★</span>
+                                </p>
+                                <p className="text-xs text-gray-500">просечна оцена</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Мобилни приказ радног времена */}
+                      {worker.radno_vreme && (
+                        <div className="sm:hidden border-t border-gray-100 px-4 py-2 text-sm">
+                          <p className="text-gray-600">
+                            <span className="font-medium">Радно време:</span> {worker.radno_vreme}
+                          </p>
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
