@@ -40,6 +40,26 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
   };
 
   const handleTimeSlotSelect = (value) => {
+    // Prvo proveravamo kompatibilnost sa uslugama
+    if (hasServices) {
+      const incompatibleServices = workerServices.filter(service => {
+        const serviceTime = service.trajanje;
+        const slotTime = Math.abs(value);
+        
+        // Time slot mora biti deljiv sa trajanjem usluge
+        return slotTime % serviceTime !== 0;
+      });
+      
+      if (incompatibleServices.length > 0) {
+        setErrors({
+          time_slot: `Ne možete postaviti trajanje na ${Math.abs(value)} min jer nije kompatibilno sa sledećim uslugama: ${
+            incompatibleServices.map(s => `${s.naziv} (${s.trajanje} min)`).join(', ')
+          }`
+        });
+        return;
+      }
+    }
+    
     setPendingTimeSlot(value);
     setShowConfirmModal(true);
   };
@@ -50,7 +70,10 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
       if (!worker || !pendingTimeSlot) return;
 
       const updatedData = {
-        ...worker,
+        ime: worker.ime,
+        prezime: worker.prezime,
+        email: worker.email,
+        telefon: worker.telefon,
         time_slot: pendingTimeSlot
       };
 
@@ -64,6 +87,9 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
       setErrors({});
       setShowConfirmModal(false);
       setPendingTimeSlot(null);
+      
+      // Osvežavamo podatke o radniku
+      fetchWorker();
     } catch (error) {
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
@@ -75,10 +101,15 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
 
   const isTimeSlotDisabled = (value) => {
     if (!hasServices) return false;
-    if (errors.time_slot && Math.abs(parseInt(timeSlot)) === Math.abs(value)) {
-      return true;
-    }
-    return false;
+    
+    // Proveravamo da li postoji neka usluga koja nije kompatibilna sa time slotom
+    return workerServices.some(service => {
+      const serviceTime = service.trajanje;
+      const slotTime = Math.abs(value);
+      
+      // Time slot mora biti deljiv sa trajanjem usluge
+      return slotTime % serviceTime !== 0;
+    });
   };
 
   return (

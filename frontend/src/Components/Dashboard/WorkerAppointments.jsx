@@ -102,23 +102,34 @@ const WorkerAppointments = ({ workerId }) => {
     
     const timeSlot = Math.abs(data.worker.time_slot);
     const duration = appointment.service_duration;
-    const baseRowHeight = 40; // Osnovna visina reda
-    
-    // Računamo koliko redova zauzima termin
     const numberOfSlots = Math.ceil(duration / timeSlot);
     
-    // Za različite vremenske slotove koristimo različite faktore skaliranja
-    let scaleFactor = 1;
+    // Osnovna visina za jedan slot
+    let baseHeight = 40;
+    
+    // Prilagodi osnovnu visinu prema time slotu
     if (timeSlot <= 10) {
-      scaleFactor = 0.8; // Manji faktor za kraće slotove
-    } else if (timeSlot >= 60) {
-      scaleFactor = 1.5; // Veći faktor za duže slotove
-    } else if (timeSlot >= 30) {
-      scaleFactor = 1.2; // Srednji faktor za srednje slotove
+      baseHeight = 32;
+    } else if (timeSlot <= 15) {
+      baseHeight = 36;
+    } else if (timeSlot <= 20) {
+      baseHeight = 40;
+    } else if (timeSlot <= 30) {
+      baseHeight = 48;
+    } else {
+      baseHeight = 60;
     }
     
-    // Računamo finalnu visinu
-    return Math.max(baseRowHeight, numberOfSlots * baseRowHeight * scaleFactor);
+    // Izračunaj ukupnu visinu
+    let totalHeight = baseHeight * numberOfSlots;
+    
+    // Dodaj malo prostora za dugačke termine
+    if (numberOfSlots > 1) {
+      totalHeight += (numberOfSlots - 1) * 2; // 2px dodatnog prostora između slotova
+    }
+    
+    // Minimalna visina je baseHeight
+    return Math.max(baseHeight, totalHeight);
   };
 
   // Proveri da li je datum u prošlosti
@@ -349,19 +360,34 @@ const WorkerAppointments = ({ workerId }) => {
                             transition: 'height 0.3s ease-in-out'
                           }}
                         >
-                          <div className="p-1.5 h-full flex flex-col justify-between">
-                            <div>
-                              <div className={`text-xs font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
-                                {appointment.service_name}
-                              </div>
-                              <div className={`text-xs truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
-                                {appointment.customer_name}
-                              </div>
+                          <div className="p-1.5 h-full flex flex-col">
+                            <div className="min-h-0 flex-1">
+                              {calculateAppointmentHeight(appointment) < 40 ? (
+                                // Horizontalni prikaz za male termine
+                                <div className="flex items-center space-x-1.5">
+                                  <div className={`text-xs leading-tight font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
+                                    {appointment.service_name}
+                                  </div>
+                                  <div className={`text-xs leading-tight truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
+                                    {appointment.customer_name}
+                                  </div>
+                                </div>
+                              ) : (
+                                // Vertikalni prikaz za veće termine
+                                <>
+                                  <div className={`text-xs leading-tight font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
+                                    {appointment.service_name}
+                                  </div>
+                                  <div className={`text-xs leading-tight truncate mt-0.5 ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
+                                    {appointment.customer_name}
+                                  </div>
+                                </>
+                              )}
                             </div>
-                            {calculateAppointmentHeight(appointment) >= 60 && (
-                              <div className={`text-xs flex items-center justify-between ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
-                                <span className="truncate">{formatPhoneNumber(appointment.customer_phone)}</span>
-                                <span>{appointment.start_time} - {appointment.end_time}</span>
+                            {calculateAppointmentHeight(appointment) >= 48 && (
+                              <div className={`text-[11px] leading-tight flex items-center justify-between mt-1 pt-1 border-t border-green-100/50 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                <span className="truncate max-w-[45%]">{formatPhoneNumber(appointment.customer_phone)}</span>
+                                <span className="truncate">{appointment.start_time} - {appointment.end_time}</span>
                               </div>
                             )}
                           </div>
