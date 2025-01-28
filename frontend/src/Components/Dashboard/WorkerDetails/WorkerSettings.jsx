@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const WorkerSettings = ({ worker, onUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,6 +17,7 @@ const WorkerSettings = ({ worker, onUpdate }) => {
   });
 
   const [previewImage, setPreviewImage] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (worker) {
@@ -100,15 +103,40 @@ const WorkerSettings = ({ worker, onUpdate }) => {
   };
 
   const handleDelete = async () => {
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        toast.error('Niste autorizovani');
+        return;
+      }
+
       await axios.delete(
         `${import.meta.env.VITE_API_URL}/workers/${worker.id}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
-      window.location.href = '/workers';
+      
+      toast.success('Radnik je uspešno obrisan');
+      setShowDeleteConfirm(false);
+      // Vratite se na listu radnika
+      window.location.href = '/dashboard';
     } catch (error) {
-      setErrors({ general: 'Došlo je do greške prilikom brisanja radnika.' });
+      console.error('Greška prilikom brisanja radnika:', error);
+      if (error.response?.status === 404) {
+        toast.error('Radnik nije pronađen');
+      } else if (error.response?.status === 403) {
+        toast.error('Nemate dozvolu za brisanje ovog radnika');
+      } else {
+        toast.error(error.response?.data?.message || 'Došlo je do greške prilikom brisanja radnika');
+      }
+    } finally {
       setIsSubmitting(false);
     }
   };

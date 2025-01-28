@@ -35,6 +35,7 @@ class WorkerController extends Controller
         ]);
 
         $data = $request->only(['ime', 'prezime', 'email', 'telefon', 'time_slot']);
+        $data['user_id'] = Auth::id();
 
         if ($request->hasFile('profile_image')) {
             $path = $request->file('profile_image')->store('worker-images', 'public');

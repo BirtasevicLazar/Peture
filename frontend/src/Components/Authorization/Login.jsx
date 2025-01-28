@@ -33,9 +33,10 @@ const Login = () => {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, formData);
       
-      // Pojednostavljeno čuvanje tokena
+      // Čuvanje tokena i user podataka
       localStorage.setItem('token', response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user_id', response.data.user.id);
       
       navigate('/dashboard');
     } catch (error) {

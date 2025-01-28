@@ -88,21 +88,40 @@ const WorkerDetails = ({ workerId }) => {
     <div className="h-full flex flex-col w-full relative">
       {/* Tabs */}
       <div className="bg-white shadow-sm flex-shrink-0">
+        {/* Mobilni prikaz - poboljšano horizontalno skrolovanje */}
         <div className="sm:hidden">
-          <select
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value)}
-            className="w-full py-3 pl-3 pr-10 text-base focus:border-green-500 focus:outline-none 
-                     focus:ring-green-500 sm:text-sm border-b border-gray-200 bg-white"
-          >
-            {tabs.map((tab) => (
-              <option key={tab.id} value={tab.id}>
-                {tab.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex overflow-x-auto hide-scrollbar border-b border-gray-200">
+            <div className="flex space-x-2 px-4 py-2 min-w-full">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center flex-shrink-0 px-4 py-2.5 rounded-lg
+                    ${activeTab === tab.id
+                      ? 'bg-green-50 text-green-600'
+                      : 'text-gray-600 hover:bg-gray-50'
+                    }
+                    transition-all duration-200 focus:outline-none
+                  `}
+                >
+                  <span className={`
+                    ${activeTab === tab.id
+                      ? 'text-green-500'
+                      : 'text-gray-400'
+                    }
+                    transition-colors duration-200
+                  `}>
+                    {tab.icon}
+                  </span>
+                  <span className="ml-2 text-sm font-light whitespace-nowrap">{tab.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         
+        {/* Desktop prikaz ostaje isti */}
         <div className="hidden sm:block">
           <nav className="flex" aria-label="Tabs">
             {tabs.map((tab) => (
