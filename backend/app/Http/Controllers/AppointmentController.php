@@ -541,4 +541,55 @@ class AppointmentController extends Controller
             ], 500);
         }
     }
+
+    public function getAvailableSlots(Request $request)
+    {
+        $request->validate([
+            'worker_id' => 'required|exists:workers,id',
+            'date' => 'required|date_format:Y-m-d',
+        ]);
+
+        $worker = Worker::findOrFail($request->worker_id);
+        
+        // Provera da li je traženi datum unutar dozvoljenog perioda
+        $maxDate = now()->addDays($worker->booking_window);
+        $requestDate = Carbon::parse($request->date);
+        
+        if ($requestDate->gt($maxDate)) {
+            return response()->json([
+                'message' => 'Datum je izvan dozvoljenog perioda za zakazivanje',
+                'available_slots' => []
+            ], 400);
+        }
+
+        // Ostatak postojeće logike za pronalaženje slobodnih termina
+        // ... existing code ...
+    }
+
+    public function getAvailableDates(Request $request)
+    {
+        $request->validate([
+            'worker_id' => 'required|exists:workers,id',
+        ]);
+
+        $worker = Worker::findOrFail($request->worker_id);
+        
+        // Uzimamo u obzir booking_window radnika
+        $startDate = now();
+        $endDate = now()->addDays($worker->booking_window);
+        
+        $availableDates = [];
+        $currentDate = $startDate->copy();
+        
+        while ($currentDate <= $endDate) {
+            if (!$currentDate->isPast()) {
+                $availableDates[] = $currentDate->format('Y-m-d');
+            }
+            $currentDate->addDay();
+        }
+
+        return response()->json([
+            'available_dates' => $availableDates
+        ]);
+    }
 } 

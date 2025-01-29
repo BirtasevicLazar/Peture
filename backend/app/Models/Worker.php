@@ -16,6 +16,7 @@ class Worker extends Model
         'email',
         'telefon',
         'time_slot',
+        'booking_window',
         'profile_image'
     ];
 

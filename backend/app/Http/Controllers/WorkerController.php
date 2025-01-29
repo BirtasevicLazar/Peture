@@ -70,19 +70,22 @@ class WorkerController extends Controller
         }
     }
 
-    public function update(Request $request, Worker $worker)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'ime' => 'required|string|max:255',
             'prezime' => 'required|string|max:255',
-            'email' => 'required|email|unique:workers,email,' . $worker->id,
+            'email' => 'required|email|max:255',
             'telefon' => 'nullable|string|max:255',
-            'time_slot' => 'required|integer',
-            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+            'time_slot' => 'nullable|integer',
+            'booking_window' => 'required|integer|min:1|max:90',
+            'profile_image' => 'nullable|image|max:2048'
         ]);
 
-        $data = $request->only(['ime', 'prezime', 'email', 'telefon', 'time_slot']);
-
+        $worker = Worker::findOrFail($id);
+        
+        $data = $request->only(['ime', 'prezime', 'email', 'telefon', 'time_slot', 'booking_window']);
+        
         if ($request->hasFile('profile_image')) {
             // Obriši staru sliku ako postoji
             if ($worker->profile_image) {
@@ -96,10 +99,7 @@ class WorkerController extends Controller
 
         $worker->update($data);
 
-        return response()->json([
-            'message' => 'Radnik uspešno ažuriran',
-            'worker' => $worker
-        ]);
+        return response()->json(['worker' => $worker]);
     }
 
     public function destroy(Worker $worker)

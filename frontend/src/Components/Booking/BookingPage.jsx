@@ -11,6 +11,7 @@ const BookingPage = () => {
   const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [maxDate, setMaxDate] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
   const [formData, setFormData] = useState({
@@ -40,6 +41,15 @@ const BookingPage = () => {
       setServices(selectedWorker.services);
       setSelectedService(null);
       setSelectedTime(null);
+      // Postavljamo maksimalni datum na osnovu booking_window-a radnika
+      const maxBookingDate = new Date();
+      maxBookingDate.setDate(maxBookingDate.getDate() + (selectedWorker.booking_window || 30));
+      setMaxDate(maxBookingDate);
+      
+      // Ako je trenutno izabrani datum van dozvoljenog opsega, resetujemo ga na danas
+      if (selectedDate > maxBookingDate) {
+        setSelectedDate(new Date());
+      }
     }
   }, [selectedWorker]);
 
@@ -111,6 +121,17 @@ const BookingPage = () => {
     try {
       setIsLoading(true);
       setApiError(null);
+
+      // Provera da li je izabrani datum unutar dozvoljenog perioda
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() + (selectedWorker.booking_window || 30));
+      
+      if (selectedDate > maxDate) {
+        setAppointments([]);
+        showError('Izabrani datum je van dozvoljenog perioda za zakazivanje');
+        return;
+      }
+
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/appointments/available`, {
         params: {
           worker_id: selectedWorker.id,
@@ -786,15 +807,27 @@ const BookingPage = () => {
               {/* Step 3 - Date & Time Selection */}
               {step === 3 && (
                 <div className="space-y-4">
-                  <input
-                    type="date"
-                    className="w-full p-3 sm:p-4 rounded-xl bg-white border text-sm
-                             border-gray-200 hover:border-green-500 focus:border-green-500 
-                             focus:ring-0 transition-all duration-200"
-                    value={selectedDate.toISOString().split('T')[0]}
-                    onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      className="w-full p-3 sm:p-4 rounded-xl bg-white border text-sm
+                               border-gray-200 hover:border-green-500 focus:border-green-500 
+                               focus:ring-0 transition-all duration-200"
+                      value={selectedDate.toISOString().split('T')[0]}
+                      onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                      min={new Date().toISOString().split('T')[0]}
+                      max={maxDate ? maxDate.toISOString().split('T')[0] : undefined}
+                    />
+                    {maxDate && (
+                      <div className="mt-2 text-xs text-gray-500 flex items-center">
+                        <svg className="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Moguće je zakazati termine do {formatDate(maxDate)}
+                      </div>
+                    )}
+                  </div>
                   <div className="bg-white rounded-xl border border-gray-200">
                     {renderAppointments()}
                   </div>
