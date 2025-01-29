@@ -126,20 +126,6 @@ const Workers = ({ onWorkerSelect }) => {
       }
       // Telefon nije obavezan
     }
-    else if (currentStep === 3) {
-      // Slika nije obavezna, ali ako je odabrana mora biti validna
-      if (formData.profile_image) {
-        const file = formData.profile_image;
-        if (file.size > 2 * 1024 * 1024) {
-          newErrors.profile_image = 'Slika ne sme biti veća od 2MB';
-          hasErrors = true;
-        }
-        if (!file.type.startsWith('image/')) {
-          newErrors.profile_image = 'Molimo vas izaberite sliku';
-          hasErrors = true;
-        }
-      }
-    }
 
     if (hasErrors) {
       setErrors(newErrors);
@@ -151,6 +137,11 @@ const Workers = ({ onWorkerSelect }) => {
 
   const prevStep = () => {
     setCurrentStep(prev => prev - 1);
+  };
+
+  const handleNext = (e) => {
+    e.preventDefault(); // Sprečavamo submit forme
+    nextStep();
   };
 
   return (
@@ -245,7 +236,7 @@ const Workers = ({ onWorkerSelect }) => {
               <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-medium text-gray-900">
-                    Dodaj radnika - Korak {currentStep} od 4
+                    Dodaj radnika - Korak {currentStep} od 3
                   </h3>
                   <button
                     onClick={() => {
@@ -264,7 +255,7 @@ const Workers = ({ onWorkerSelect }) => {
                 <div className="w-full bg-gray-200 h-1 mt-4 rounded-full overflow-hidden">
                   <div 
                     className="bg-gray-900 h-full transition-all duration-300"
-                    style={{ width: `${(currentStep / 4) * 100}%` }}
+                    style={{ width: `${(currentStep / 3) * 100}%` }}
                   />
                 </div>
               </div>
@@ -408,35 +399,10 @@ const Workers = ({ onWorkerSelect }) => {
                               className="hidden"
                               onChange={handleInputChange}
                             />
-                            {errors.profile_image && (
-                              <p className="mt-2 text-sm text-red-600">{errors.profile_image}</p>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentStep === 4 && (
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Termin (u minutima)
-                        </label>
-                        <select
-                          name="time_slot"
-                          value={formData.time_slot}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-xl text-gray-900 
-                                   focus:ring-2 focus:ring-gray-400 focus:border-transparent"
-                        >
-                          <option value="15">15 minuta</option>
-                          <option value="30">30 minuta</option>
-                          <option value="45">45 minuta</option>
-                          <option value="60">60 minuta</option>
-                        </select>
-                        {errors.time_slot && (
-                          <p className="mt-1 text-sm text-red-600">{errors.time_slot}</p>
+                        {errors.profile_image && (
+                          <p className="mt-2 text-sm text-red-600">{errors.profile_image}</p>
                         )}
                       </div>
                     </div>
@@ -454,17 +420,25 @@ const Workers = ({ onWorkerSelect }) => {
                     >
                       {currentStep === 1 ? 'Otkaži' : 'Nazad'}
                     </button>
-                    <button
-                      type={currentStep === 4 ? 'submit' : 'button'}
-                      onClick={currentStep === 4 ? undefined : nextStep}
-                      disabled={isSubmitting}
-                      className="px-6 py-2 text-sm font-medium text-white bg-gray-900 
-                               rounded-xl hover:bg-gray-800 transition-colors"
-                    >
-                      {currentStep === 4 
-                        ? (isSubmitting ? 'Dodavanje...' : 'Dodaj radnika')
-                        : 'Nastavi'}
-                    </button>
+                    {currentStep === 3 ? (
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="px-6 py-2 text-sm font-medium text-white bg-gray-900 
+                                 rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                      >
+                        {isSubmitting ? 'Dodavanje...' : 'Dodaj radnika'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleNext}
+                        className="px-6 py-2 text-sm font-medium text-white bg-gray-900 
+                                 rounded-xl hover:bg-gray-800 transition-colors"
+                      >
+                        Nastavi
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>

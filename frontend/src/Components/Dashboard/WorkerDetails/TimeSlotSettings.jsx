@@ -69,30 +69,43 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
     try {
       if (!worker || !pendingTimeSlot) return;
 
-      const updatedData = {
-        ime: worker.ime,
-        prezime: worker.prezime,
-        email: worker.email,
-        telefon: worker.telefon,
-        time_slot: pendingTimeSlot
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append('ime', worker.ime);
+      formDataToSend.append('prezime', worker.prezime);
+      formDataToSend.append('email', worker.email);
+      formDataToSend.append('telefon', worker.telefon || '');
+      formDataToSend.append('time_slot', pendingTimeSlot);
+      formDataToSend.append('booking_window', worker.booking_window || 30);
+      formDataToSend.append('_method', 'PUT');
 
-      await axios.put(
+      const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/workers/${workerId}`,
-        updatedData,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }}
+        formDataToSend,
+        { 
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json'
+          } 
+        }
       );
       
-      setTimeSlot(pendingTimeSlot);
-      setErrors({});
-      setShowConfirmation(false);
-      setPendingTimeSlot(null);
-      
-      // Osvežavamo podatke o radniku
-      fetchWorker();
+      if (response.data && response.data.worker) {
+        setTimeSlot(pendingTimeSlot);
+        setErrors({});
+        setShowConfirmation(false);
+        setPendingTimeSlot(null);
+        
+        // Osvežavamo podatke o radniku
+        fetchWorker();
+      }
     } catch (error) {
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
+      } else {
+        setErrors({
+          time_slot: 'Došlo je do greške prilikom ažuriranja time slot-a'
+        });
       }
     } finally {
       setLoading(false);
