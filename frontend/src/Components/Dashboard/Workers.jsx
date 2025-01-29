@@ -159,11 +159,11 @@ const Workers = ({ onWorkerSelect }) => {
       <div className="w-full bg-white min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Action Button */}
-          <div className="flex justify-end mb-8">
+          <div className="mb-8">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-gray-900 rounded-xl shadow-lg flex items-center 
-                       space-x-2 hover:bg-gray-800 transition-all text-white"
+              className="w-full bg-gray-900 rounded-xl shadow-lg flex items-center justify-center
+                       space-x-2 hover:bg-gray-800 transition-all text-white h-14"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 

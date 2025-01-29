@@ -123,13 +123,10 @@ const WorkerAppointments = ({ workerId }) => {
     // Izračunaj ukupnu visinu
     let totalHeight = baseHeight * numberOfSlots;
     
-    // Dodaj malo prostora za dugačke termine
-    if (numberOfSlots > 1) {
-      totalHeight += (numberOfSlots - 1) * 2; // 2px dodatnog prostora između slotova
-    }
+    // Oduzmi 1px za svaku granicu između redova
+    totalHeight = totalHeight - (numberOfSlots - 1);
     
-    // Minimalna visina je baseHeight
-    return Math.max(baseHeight, totalHeight);
+    return totalHeight;
   };
 
   // Proveri da li je datum u prošlosti
@@ -265,11 +262,11 @@ const WorkerAppointments = ({ workerId }) => {
   return (
     <div className="h-full pb-16 lg:pb-0">
       {/* Navigacija po datumima */}
-      <div className="bg-white/80 backdrop-blur-sm px-3 py-2.5 rounded-xl shadow-sm mb-3 sticky top-0 z-20">
-        <div className="flex items-center justify-between gap-2">
+      <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => setSelectedDate(prev => subDays(prev, 1))}
-            className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100/80 active:scale-95"
+            className="p-2 rounded-xl transition-all duration-200 hover:bg-gray-100 active:scale-95"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -283,22 +280,11 @@ const WorkerAppointments = ({ workerId }) => {
             <div className="text-lg font-medium text-gray-900">
               {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
             </div>
-            {data?.schedule && (
-              <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-center gap-2">
-                <span>{data.schedule.start_time} - {data.schedule.end_time}</span>
-                {data.schedule.has_break && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                    <span>Pauza: {data.schedule.break_start} - {data.schedule.break_end}</span>
-                  </>
-                )}
-              </div>
-            )}
           </div>
           
           <button
             onClick={() => setSelectedDate(prev => addDays(prev, 1))}
-            className="p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200 active:scale-95"
+            className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 active:scale-95"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -309,7 +295,7 @@ const WorkerAppointments = ({ workerId }) => {
 
       {/* Grid sa terminima */}
       {data?.schedule ? (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <div className="min-w-[300px]">
               {timeSlots.map((timeSlot, index) => {
@@ -336,12 +322,14 @@ const WorkerAppointments = ({ workerId }) => {
                     }}
                     onClick={() => handleSlotClick(timeSlot)}
                   >
-                    <div className="w-16 flex-shrink-0 border-r border-gray-100 px-3 py-1.5">
-                      <div className="text-xs font-medium text-gray-500">
-                        {timeSlot}
+                    <div className="w-20 flex-shrink-0 border-r border-gray-100 flex items-center h-full">
+                      <div className="px-3 py-1.5 w-full">
+                        <div className="text-xs font-medium text-gray-500 truncate">
+                          {timeSlot}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex-1 relative">
+                    <div className="flex-1 relative h-full">
                       {isBreak ? (
                         <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
                           <span className="text-xs text-gray-400">Pauza</span>
@@ -350,44 +338,37 @@ const WorkerAppointments = ({ workerId }) => {
                         <div
                           onClick={() => setSelectedAppointment(appointment)}
                           className={`
-                            absolute left-0 right-0 mx-1 rounded-md border overflow-hidden shadow-sm cursor-pointer
+                            absolute left-0 right-0 mx-1.5 rounded-xl border overflow-hidden shadow-sm cursor-pointer
                             transition-all duration-300 hover:scale-[1.02] hover:shadow-md
                             ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
                           `}
                           style={{
                             height: `${calculateAppointmentHeight(appointment)}px`,
+                            top: 0,
                             zIndex: 10,
-                            transition: 'height 0.3s ease-in-out'
+                            transition: 'all 0.3s ease-in-out'
                           }}
                         >
-                          <div className="p-1.5 h-full flex flex-col">
-                            <div className="min-h-0 flex-1">
-                              {calculateAppointmentHeight(appointment) < 40 ? (
-                                // Horizontalni prikaz za male termine
-                                <div className="flex items-center space-x-1.5">
-                                  <div className={`text-xs leading-tight font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
-                                    {appointment.service_name}
-                                  </div>
-                                  <div className={`text-xs leading-tight truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
-                                    {appointment.customer_name}
-                                  </div>
+                          <div className="px-2 h-full flex flex-col justify-center">
+                            <div className="flex items-center justify-between gap-2 w-full">
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`text-xs leading-none font-medium truncate flex-shrink-0 ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
+                                  {appointment.service_name}
                                 </div>
-                              ) : (
-                                // Vertikalni prikaz za veće termine
-                                <>
-                                  <div className={`text-xs leading-tight font-medium truncate ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
-                                    {appointment.service_name}
-                                  </div>
-                                  <div className={`text-xs leading-tight truncate mt-0.5 ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
-                                    {appointment.customer_name}
-                                  </div>
-                                </>
-                              )}
+                                <div className="w-1 h-1 rounded-full bg-gray-200 flex-shrink-0"></div>
+                                <div className={`text-xs leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
+                                  {appointment.customer_name}
+                                </div>
+                              </div>
+                              <div className={`text-[11px] leading-none whitespace-nowrap flex-shrink-0 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                {appointment.start_time} - {appointment.end_time}
+                              </div>
                             </div>
                             {calculateAppointmentHeight(appointment) >= 48 && (
-                              <div className={`text-[11px] leading-tight flex items-center justify-between mt-1 pt-1 border-t border-green-100/50 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
-                                <span className="truncate max-w-[45%]">{formatPhoneNumber(appointment.customer_phone)}</span>
-                                <span className="truncate">{appointment.start_time} - {appointment.end_time}</span>
+                              <div className="mt-1 flex items-center gap-2">
+                                <div className={`text-[11px] leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                  {formatPhoneNumber(appointment.customer_phone)}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -401,7 +382,7 @@ const WorkerAppointments = ({ workerId }) => {
           </div>
         </div>
       ) : (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 text-center text-sm text-gray-500">
+        <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
           Radnik ne radi na izabrani dan
         </div>
       )}
@@ -409,26 +390,26 @@ const WorkerAppointments = ({ workerId }) => {
       {/* Modal za kreiranje termina */}
       {showCreateModal && (
         <div 
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 transition-opacity duration-300"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6"
           onClick={() => setShowCreateModal(false)}
         >
           <div 
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 opacity-100"
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden transform transition-all duration-300"
             onClick={e => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 px-6 py-5">
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-white">
                     Novi termin
                   </h3>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-gray-300">
                     {format(selectedDate, "EEEE, d. MMMM yyyy.", { locale: sr })} u {selectedSlot}
                   </p>
                 </div>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="text-gray-400 hover:text-gray-500 transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -439,7 +420,7 @@ const WorkerAppointments = ({ workerId }) => {
 
             <form onSubmit={handleCreateSubmit} className="p-6 space-y-6">
               {createError && (
-                <div className="bg-red-50 text-red-800 rounded-lg p-4 text-sm">
+                <div className="bg-red-50 text-red-800 rounded-xl p-4 text-sm">
                   {createError}
                 </div>
               )}
@@ -451,7 +432,7 @@ const WorkerAppointments = ({ workerId }) => {
                   </label>
                   <select
                     id="service"
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-lg"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-xl"
                     value={createFormData.service_id}
                     onChange={(e) => {
                       const serviceId = e.target.value;
@@ -482,7 +463,7 @@ const WorkerAppointments = ({ workerId }) => {
                       id="duration"
                       min={data?.worker?.time_slot}
                       step={data?.worker?.time_slot}
-                      className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      className="mt-1 block w-full border-gray-300 rounded-xl shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                       value={createFormData.duration}
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
                       required={!createFormData.service_id}
@@ -500,7 +481,7 @@ const WorkerAppointments = ({ workerId }) => {
                   <input
                     type="text"
                     id="customer_name"
-                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    className="mt-1 block w-full border-gray-300 rounded-xl shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                     value={createFormData.customer_name}
                     onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_name: e.target.value }))}
                     required
@@ -514,7 +495,7 @@ const WorkerAppointments = ({ workerId }) => {
                   <input
                     type="tel"
                     id="customer_phone"
-                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    className="mt-1 block w-full border-gray-300 rounded-xl shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                     value={createFormData.customer_phone}
                     onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_phone: e.target.value }))}
                     required
@@ -528,7 +509,7 @@ const WorkerAppointments = ({ workerId }) => {
                   <input
                     type="email"
                     id="customer_email"
-                    className="mt-1 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    className="mt-1 block w-full border-gray-300 rounded-xl shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                     value={createFormData.customer_email}
                     onChange={(e) => setCreateFormData(prev => ({ ...prev, customer_email: e.target.value }))}
                   />
@@ -539,7 +520,7 @@ const WorkerAppointments = ({ workerId }) => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
                   Otkaži
                 </button>
@@ -547,8 +528,8 @@ const WorkerAppointments = ({ workerId }) => {
                   type="submit"
                   disabled={isSubmitting}
                   className={`
-                    px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-sm
-                    hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                    px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-xl shadow-sm
+                    hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500
                     disabled:opacity-50 disabled:cursor-not-allowed
                   `}
                 >
@@ -563,35 +544,35 @@ const WorkerAppointments = ({ workerId }) => {
       {/* Modal za prikaz detalja termina */}
       {selectedAppointment && (
         <div 
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6 transition-opacity duration-300" 
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6" 
           onClick={() => setSelectedAppointment(null)}
         >
           <div 
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 opacity-100" 
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden transform transition-all duration-300" 
             onClick={e => e.stopPropagation()}
           >
             {/* Header sa vremenom termina */}
-            <div className="bg-gradient-to-r from-green-50 to-green-100/50 px-6 py-5">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 px-6 py-5">
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm font-medium text-green-800">
+                    <span className="text-sm font-medium text-gray-300">
                       {format(selectedDate, "EEEE", { locale: sr })}
                     </span>
                   </div>
-                  <div className="text-2xl font-medium text-green-900">
+                  <div className="text-2xl font-medium text-white">
                     {selectedAppointment.start_time} - {selectedAppointment.end_time}
                   </div>
-                  <div className="text-sm text-green-700 mt-0.5">
+                  <div className="text-sm text-gray-300 mt-0.5">
                     {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedAppointment(null)}
-                  className="text-green-600 hover:text-green-700 transition-colors p-1 hover:bg-green-100 rounded-lg"
+                  className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700/50 rounded-xl"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -604,8 +585,8 @@ const WorkerAppointments = ({ workerId }) => {
             <div className="p-6 space-y-6">
               {/* Usluga */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-2 bg-gray-100 rounded-xl">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
@@ -623,8 +604,8 @@ const WorkerAppointments = ({ workerId }) => {
 
               {/* Klijent */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-2 bg-gray-100 rounded-xl">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -635,7 +616,7 @@ const WorkerAppointments = ({ workerId }) => {
                   <div className="mt-3 flex flex-col sm:flex-row gap-2">
                     <a 
                       href={`tel:${selectedAppointment.customer_phone}`}
-                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                     >
                       <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -646,7 +627,7 @@ const WorkerAppointments = ({ workerId }) => {
                     {selectedAppointment.customer_email && (
                       <a 
                         href={`mailto:${selectedAppointment.customer_email}`}
-                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                       >
                         <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -660,15 +641,15 @@ const WorkerAppointments = ({ workerId }) => {
 
               {/* Status */}
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-2 bg-gray-100 rounded-xl">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-500">Status</div>
                   <div className="mt-1">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-800">
                       Zakazan
                     </span>
                   </div>

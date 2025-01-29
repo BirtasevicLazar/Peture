@@ -53,10 +53,27 @@ const WorkSchedule = ({ workerId }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setScheduleFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    
+    if (type === 'checkbox') {
+      if (name === 'has_break') {
+        setScheduleFormData(prev => ({
+          ...prev,
+          has_break: checked,
+          break_start: checked ? prev.break_start : "13:00",
+          break_end: checked ? prev.break_end : "14:00"
+        }));
+      } else {
+        setScheduleFormData(prev => ({
+          ...prev,
+          [name]: checked
+        }));
+      }
+    } else {
+      setScheduleFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const resetForm = () => {
@@ -105,7 +122,12 @@ const WorkSchedule = ({ workerId }) => {
       const payload = {
         worker_id: workerId,
         day_of_week: selectedDay.id,
-        ...scheduleFormData
+        is_working: scheduleFormData.is_working,
+        start_time: scheduleFormData.start_time,
+        end_time: scheduleFormData.end_time,
+        has_break: scheduleFormData.has_break,
+        break_start: scheduleFormData.has_break ? scheduleFormData.break_start : null,
+        break_end: scheduleFormData.has_break ? scheduleFormData.break_end : null
       };
 
       const existingSchedule = schedules.find(s => s.day_of_week === selectedDay.id && s.worker_id === workerId);
@@ -400,21 +422,22 @@ const WorkSchedule = ({ workerId }) => {
                               </div>
                               <span className="text-sm font-medium text-gray-900">Pauza</span>
                             </div>
-                            <div className="relative inline-block w-10 align-middle select-none">
+                            <label className="relative inline-flex items-center cursor-pointer">
                               <input
                                 type="checkbox"
-                                id="has_break"
                                 name="has_break"
                                 checked={scheduleFormData.has_break}
                                 onChange={handleInputChange}
-                                className="sr-only peer"
+                                className="sr-only"
                               />
-                              <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full 
-                                          peer-checked:bg-green-500 after:content-[''] after:absolute after:top-0.5 
-                                          after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 
-                                          after:transition-all cursor-pointer"
-                              ></div>
-                            </div>
+                              <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                                scheduleFormData.has_break ? 'bg-green-500' : 'bg-gray-200'
+                              }`}>
+                                <div className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ease-in-out transform ${
+                                  scheduleFormData.has_break ? 'translate-x-6' : 'translate-x-1'
+                                } shadow-md mt-0.5`} />
+                              </div>
+                            </label>
                           </div>
 
                           {scheduleFormData.has_break && (

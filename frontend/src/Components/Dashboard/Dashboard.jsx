@@ -5,6 +5,7 @@ import Salon from './Salon';
 import WorkerDetails from './WorkerDetails';
 import WorkerAppointments from './WorkerAppointments';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
@@ -104,39 +105,9 @@ const Dashboard = () => {
 
     if (activeComponent === 'worker-details') {
       if (activeSubmenu === 'details') {
-        return (
-          <div>
-            <div className="mb-6 flex items-center">
-              <button
-                onClick={() => {
-                  setActiveComponent('workers');
-                  setSelectedWorker(null);
-                  setActiveSubmenu(null);
-                }}
-                className="mr-4 text-gray-500 hover:text-gray-700"
-              >
-              </button>
-            </div>
-            <WorkerDetails workerId={selectedWorker?.id} />
-          </div>
-        );
+        return <WorkerDetails workerId={selectedWorker?.id} />;
       } else if (activeSubmenu === 'appointments') {
-        return (
-          <div>
-            <div className="mb-6 flex items-center">
-              <button
-                onClick={() => {
-                  setActiveComponent('workers');
-                  setSelectedWorker(null);
-                  setActiveSubmenu(null);
-                }}
-                className="mr-4 text-gray-500 hover:text-gray-700"
-              >
-              </button>
-            </div>
-            <WorkerAppointments workerId={selectedWorker?.id} />
-          </div>
-        );
+        return <WorkerAppointments workerId={selectedWorker?.id} />;
       }
       return null;
     }
@@ -378,7 +349,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50/50">
       {/* Top Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200/80 fixed w-full top-0 z-40 h-16">
+      <nav className="bg-white border-b border-gray-200 fixed w-full top-0 z-40 h-16">
         <div className="h-full px-4">
           <div className="flex justify-between h-full">
             <div className="flex items-center">
@@ -389,34 +360,32 @@ const Dashboard = () => {
                     setSelectedWorker(null);
                     setActiveSubmenu(null);
                   }}
-                  className="lg:hidden inline-flex items-center p-2 text-gray-400 hover:text-gray-500 
-                           hover:bg-gray-100/80 transition-colors"
+                  className="lg:hidden inline-flex items-center p-2 text-gray-400 hover:text-gray-900 
+                           hover:bg-gray-100 rounded-lg transition-colors duration-200"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
               ) : null}
               <div className="flex-shrink-0 flex items-center ml-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  Peture
-                </span>
+                <span className="text-xl font-semibold text-gray-900">Peture</span>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
               {selectedWorker && (
-                <span className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1.5">
+                <span className="text-sm font-medium text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg">
                   {selectedWorker.ime} {selectedWorker.prezime}
                 </span>
               )}
               <button
                 onClick={handleLogout}
-                className="lg:hidden inline-flex items-center p-2 text-gray-400 hover:text-gray-500 
-                         hover:bg-gray-100/80 transition-colors"
+                className="lg:hidden inline-flex items-center p-2 text-red-500 hover:text-white 
+                         hover:bg-red-500 rounded-lg transition-colors duration-200"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
@@ -427,7 +396,7 @@ const Dashboard = () => {
 
       <div className="flex h-[100dvh] pt-16 pb-16 lg:pb-0">
         {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden lg:block w-72 bg-white/80 backdrop-blur-sm border-r border-gray-200/80">
+        <div className="hidden lg:block w-72 bg-white border-r border-gray-200">
           <div className="flex flex-col h-full">
             <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
               {menuItems.map((item) => (
@@ -436,22 +405,21 @@ const Dashboard = () => {
                   onClick={() => {
                     setActiveComponent(item.id);
                     setSelectedWorker(null);
+                    setActiveSubmenu(null);
                   }}
                   className={`${
                     activeComponent === item.id && !selectedWorker
-                      ? 'bg-gradient-to-r from-green-50 to-green-100/50 text-green-600 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  } group w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200`}
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  } group w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200`}
                 >
                   <svg
-                    className={`${
-                      activeComponent === item.id && !selectedWorker ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
-                    } mr-3 h-5 w-5 transition-colors duration-200`}
+                    className="w-5 h-5 mr-3"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
                   </svg>
                   {item.label}
                 </button>
@@ -460,16 +428,15 @@ const Dashboard = () => {
               {/* Worker Submenu */}
               {selectedWorker && (
                 <div className="mt-4 space-y-2">
-                  <div className="px-3 py-2 text-sm font-medium text-gray-900 bg-gradient-to-r from-gray-50 to-gray-100/50 
-                               rounded-xl border border-gray-200/50">
+                  <div className="px-3 py-2 text-sm font-medium text-gray-900 bg-gray-100 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
                               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                       <span>Radnik</span>
                     </div>
-                    <p className="font-normal text-gray-900">
+                    <p className="font-medium text-gray-900">
                       {selectedWorker.ime} {selectedWorker.prezime}
                     </p>
                   </div>
@@ -477,21 +444,19 @@ const Dashboard = () => {
                     <button
                       key={item.id}
                       onClick={() => handleSubmenuClick(item.id)}
-                      className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200
+                      className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200
                         ${activeSubmenu === item.id
-                          ? 'bg-gradient-to-r from-green-50 to-green-100/50 text-green-600 shadow-sm'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-gray-100 text-gray-900'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         }`}
                     >
                       <svg
-                        className={`mr-3 h-5 w-5 ${
-                          activeSubmenu === item.id ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500'
-                        } transition-colors duration-200`}
+                        className="w-5 h-5 mr-3"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
                       </svg>
                       {item.label}
                     </button>
@@ -500,14 +465,15 @@ const Dashboard = () => {
               )}
             </nav>
             
-            <div className="p-4 border-t border-gray-200/80">
+            <div className="p-4 border-t border-gray-200">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 
-                         bg-white hover:bg-red-50 border border-red-100"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium 
+                         text-white bg-red-500 hover:bg-red-600 rounded-lg 
+                         transition-colors duration-200"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 Odjavi se
@@ -524,7 +490,7 @@ const Dashboard = () => {
         </main>
 
         {/* Mobile Bottom Navigation - hidden on desktop */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200/80 z-40 h-16">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 h-16">
           <div className="flex justify-evenly items-center h-full px-2">
             {!selectedWorker ? (
               menuItems.map((item) => (
@@ -536,12 +502,12 @@ const Dashboard = () => {
                   }}
                   className={`flex flex-col items-center justify-center w-full h-full
                     ${activeComponent === item.id
-                      ? 'text-green-600'
-                      : 'text-gray-600'
+                      ? 'text-gray-900'
+                      : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
                   <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
                   </svg>
                   <span className="text-xs font-medium">{item.label}</span>
                 </button>
@@ -553,12 +519,12 @@ const Dashboard = () => {
                   onClick={() => handleSubmenuClick(item.id)}
                   className={`flex flex-col items-center justify-center w-full h-full
                     ${activeSubmenu === item.id
-                      ? 'text-green-600'
-                      : 'text-gray-600'
+                      ? 'text-gray-900'
+                      : 'text-gray-600 hover:text-gray-900'
                     }`}
                 >
                   <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
                   </svg>
                   <span className="text-xs font-medium">{item.label}</span>
                 </button>
@@ -568,76 +534,65 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 z-50">
-          {/* Background overlay */}
-          <div className="fixed inset-0 bg-gray-500/75 backdrop-blur-sm transition-opacity" />
-          
-          {/* Modal container sa perfektnim centriranjem */}
-          <div className="fixed inset-0 flex items-center justify-center p-4">
-            {/* Modal content */}
-            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl transform transition-all 
-                          border border-gray-200/50 overflow-hidden">
-              {/* Modal header */}
-              <div className="bg-gradient-to-r from-red-50 to-red-100/50 px-6 py-5 border-b border-gray-200/50">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 
-                                  shadow-sm border border-red-200/50">
-                      <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                      </svg>
+      {/* Logout Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" 
+                 onClick={() => setShowLogoutModal(false)} />
+            
+            <div className="flex min-h-full items-center justify-center p-4">
+              <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-xl">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Odjava
+                        </h3>
+                        <p className="text-sm text-gray-500">Da li ste sigurni da želite da se odjavite?</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setShowLogoutModal(false)}
+                      className="text-gray-400 hover:text-gray-500 transition-colors"
+                    >
+                      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Potvrda odjave
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600">
-                      Da li ste sigurni da želite da se odjavite? Bićete preusmereni na stranicu za prijavu.
-                    </p>
+
+                  <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                    <button
+                      type="button"
+                      onClick={() => setShowLogoutModal(false)}
+                      className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 
+                               rounded-xl hover:bg-gray-50"
+                    >
+                      Otkaži
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmLogout}
+                      className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl 
+                               hover:bg-red-700"
+                    >
+                      Odjavi se
+                    </button>
                   </div>
-                </div>
-              </div>
-              
-              {/* Modal footer */}
-              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200/50">
-                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setShowLogoutModal(false)}
-                    className="inline-flex justify-center items-center px-4 py-2.5 text-sm font-medium text-gray-700 
-                             bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none 
-                             focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200
-                             shadow-sm hover:shadow-md"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Otkaži
-                  </button>
-                  <button
-                    type="button"
-                    onClick={confirmLogout}
-                    className="inline-flex justify-center items-center px-4 py-2.5 text-sm font-medium text-white 
-                             bg-red-600 rounded-xl hover:bg-red-700 focus:outline-none focus:ring-2 
-                             focus:ring-offset-2 focus:ring-red-500 transition-all duration-200
-                             shadow-sm hover:shadow-md"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Odjavi se
-                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       <OnboardingModal />
     </div>
