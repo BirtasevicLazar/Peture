@@ -167,7 +167,7 @@ const Services = ({ workerId }) => {
 
   return (
     <div className="w-full pt-6">
-      <div className="px-4 space-y-4">
+      <div className="px-4 flex flex-col gap-3">
         {/* Desktop prikaz */}
         <div className="hidden lg:block">
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
@@ -245,7 +245,7 @@ const Services = ({ workerId }) => {
         </div>
 
         {/* Mobilni prikaz */}
-        <div className="lg:hidden space-y-4">
+        <div className="lg:hidden flex flex-col gap-3">
           {services.map((service) => (
             <div
               key={service.id}
@@ -313,7 +313,7 @@ const Services = ({ workerId }) => {
         {/* Dugme za dodavanje */}
         <button
           onClick={() => handleOpenServiceModal()}
-          className="w-full flex items-center justify-center gap-2 p-4 
+          className="w-full flex items-center justify-center gap-2 p-4 mt-1
                    bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl
                    transition-colors duration-200 shadow-sm"
         >

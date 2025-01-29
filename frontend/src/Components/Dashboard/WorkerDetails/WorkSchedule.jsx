@@ -160,7 +160,7 @@ const WorkSchedule = ({ workerId }) => {
 
   return (
     <div className="w-full pt-6">
-      <div className="px-4 space-y-4">
+      <div className="px-4 flex flex-col gap-3">
         {/* Desktop prikaz */}
         <div className="hidden lg:block">
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
@@ -244,7 +244,7 @@ const WorkSchedule = ({ workerId }) => {
         </div>
 
         {/* Mobilni prikaz */}
-        <div className="lg:hidden space-y-4">
+        <div className="lg:hidden flex flex-col gap-3">
           {daysOfWeek.map((day) => {
             const schedule = getScheduleForDay(day.id);
             return (

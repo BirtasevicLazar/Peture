@@ -369,7 +369,7 @@ const Dashboard = () => {
                 </button>
               ) : null}
               <div className="flex-shrink-0 flex items-center ml-2">
-                <span className="text-xl font-semibold text-gray-900">Peture</span>
+                <span className="text-xl font-normal text-gray-900">Peture</span>
               </div>
             </div>
             
