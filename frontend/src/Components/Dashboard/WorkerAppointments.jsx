@@ -111,7 +111,7 @@ const WorkerAppointments = ({ workerId }) => {
     if (timeSlot <= 10) {
       baseHeight = 32;
     } else if (timeSlot <= 15) {
-      baseHeight = 36;
+      baseHeight = 38;
     } else if (timeSlot <= 20) {
       baseHeight = 40;
     } else if (timeSlot <= 30) {
@@ -260,9 +260,9 @@ const WorkerAppointments = ({ workerId }) => {
   }
 
   return (
-    <div className="h-full pb-16 lg:pb-0">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Navigacija po datumima */}
-      <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden flex-shrink-0">
         <div className="px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => setSelectedDate(prev => subDays(prev, 1))}
@@ -294,98 +294,100 @@ const WorkerAppointments = ({ workerId }) => {
       </div>
 
       {/* Grid sa terminima */}
-      {data?.schedule ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="min-w-[300px]">
-              {timeSlots.map((timeSlot, index) => {
-                const appointment = findAppointment(timeSlot);
-                const isBreak = isBreakTime(timeSlot);
-                const isFullHour = timeSlot.endsWith(':00');
-                const isPast = isPastTimeSlot(timeSlot);
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {data?.schedule ? (
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="min-w-[300px]">
+                {timeSlots.map((timeSlot, index) => {
+                  const appointment = findAppointment(timeSlot);
+                  const isBreak = isBreakTime(timeSlot);
+                  const isFullHour = timeSlot.endsWith(':00');
+                  const isPast = isPastTimeSlot(timeSlot);
 
-                return (
-                  <div
-                    key={timeSlot}
-                    className={`
-                      flex border-b border-gray-100 relative
-                      ${isFullHour ? 'bg-gray-50/30' : ''}
-                      ${!data.schedule.is_working ? 'opacity-50' : ''}
-                      ${isPast ? 'bg-gray-50/50' : ''}
-                      ${!appointment && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
-                      transition-colors duration-200
-                    `}
-                    style={{ 
-                      height: `${Math.abs(data.worker.time_slot) <= 10 ? '32px' : 
-                              Math.abs(data.worker.time_slot) >= 60 ? '60px' : 
-                              Math.abs(data.worker.time_slot) >= 30 ? '48px' : '40px'}`
-                    }}
-                    onClick={() => handleSlotClick(timeSlot)}
-                  >
-                    <div className="w-20 flex-shrink-0 border-r border-gray-100 flex items-center h-full">
-                      <div className="px-3 py-1.5 w-full">
-                        <div className="text-xs font-medium text-gray-500 truncate">
-                          {timeSlot}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 relative h-full">
-                      {isBreak ? (
-                        <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
-                          <span className="text-xs text-gray-400">Pauza</span>
-                        </div>
-                      ) : appointment && (
-                        <div
-                          onClick={() => setSelectedAppointment(appointment)}
-                          className={`
-                            absolute left-0 right-0 mx-1.5 rounded-xl border overflow-hidden shadow-sm cursor-pointer
-                            transition-all duration-300 hover:scale-[1.02] hover:shadow-md
-                            ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
-                          `}
-                          style={{
-                            height: `${calculateAppointmentHeight(appointment)}px`,
-                            top: 0,
-                            zIndex: 10,
-                            transition: 'all 0.3s ease-in-out'
-                          }}
-                        >
-                          <div className="px-2 h-full flex flex-col justify-center">
-                            <div className="flex items-center justify-between gap-2 w-full">
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <div className={`text-xs leading-none font-medium truncate flex-shrink-0 ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
-                                  {appointment.service_name}
-                                </div>
-                                <div className="w-1 h-1 rounded-full bg-gray-200 flex-shrink-0"></div>
-                                <div className={`text-xs leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
-                                  {appointment.customer_name}
-                                </div>
-                              </div>
-                              <div className={`text-[11px] leading-none whitespace-nowrap flex-shrink-0 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
-                                {appointment.start_time} - {appointment.end_time}
-                              </div>
-                            </div>
-                            {calculateAppointmentHeight(appointment) >= 48 && (
-                              <div className="mt-1 flex items-center gap-2">
-                                <div className={`text-[11px] leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
-                                  {formatPhoneNumber(appointment.customer_phone)}
-                                </div>
-                              </div>
-                            )}
+                  return (
+                    <div
+                      key={timeSlot}
+                      className={`
+                        flex border-b border-gray-100 relative
+                        ${isFullHour ? 'bg-gray-50/30' : ''}
+                        ${!data.schedule.is_working ? 'opacity-50' : ''}
+                        ${isPast ? 'bg-gray-50/50' : ''}
+                        ${!appointment && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
+                        transition-colors duration-200
+                      `}
+                      style={{ 
+                        height: `${Math.abs(data.worker.time_slot) <= 10 ? '32px' : 
+                                Math.abs(data.worker.time_slot) >= 60 ? '60px' : 
+                                Math.abs(data.worker.time_slot) >= 30 ? '48px' : '40px'}`
+                      }}
+                      onClick={() => handleSlotClick(timeSlot)}
+                    >
+                      <div className="w-16 flex-shrink-0 border-r border-gray-100 flex items-center h-full">
+                        <div className="px-2 py-1.5 w-full">
+                          <div className="text-xs font-medium text-gray-500 truncate">
+                            {timeSlot}
                           </div>
                         </div>
-                      )}
+                      </div>
+                      <div className="flex-1 relative h-full">
+                        {isBreak ? (
+                          <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
+                            <span className="text-xs text-gray-400">Pauza</span>
+                          </div>
+                        ) : appointment && (
+                          <div
+                            onClick={() => setSelectedAppointment(appointment)}
+                            className={`
+                              absolute left-0 right-0 mx-1.5 rounded-xl border overflow-hidden shadow-sm cursor-pointer
+                              transition-all duration-300 hover:scale-[1.02] hover:shadow-md
+                              ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
+                            `}
+                            style={{
+                              height: `${calculateAppointmentHeight(appointment)}px`,
+                              top: 0,
+                              zIndex: 10,
+                              transition: 'all 0.3s ease-in-out'
+                            }}
+                          >
+                            <div className="px-2 h-full flex flex-col justify-center">
+                              <div className="flex items-center justify-between gap-2 w-full">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <div className={`text-xs leading-none font-medium truncate flex-shrink-0 ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
+                                    {appointment.service_name}
+                                  </div>
+                                  <div className="w-1 h-1 rounded-full bg-gray-200 flex-shrink-0"></div>
+                                  <div className={`text-xs leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
+                                    {appointment.customer_name}
+                                  </div>
+                                </div>
+                                <div className={`text-[11px] leading-none whitespace-nowrap flex-shrink-0 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                  {appointment.start_time} - {appointment.end_time}
+                                </div>
+                              </div>
+                              {calculateAppointmentHeight(appointment) >= 48 && (
+                                <div className="mt-1 flex items-center gap-2">
+                                  <div className={`text-[11px] leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                    {formatPhoneNumber(appointment.customer_phone)}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
-          Radnik ne radi na izabrani dan
-        </div>
-      )}
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
+            Radnik ne radi na izabrani dan
+          </div>
+        )}
+      </div>
 
       {/* Modal za kreiranje termina */}
       {showCreateModal && (

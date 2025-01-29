@@ -41,14 +41,13 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
   };
 
   const handleTimeSlotSelect = (value) => {
-    // Prvo proveravamo kompatibilnost sa uslugama
     if (hasServices) {
       const incompatibleServices = workerServices.filter(service => {
         const serviceTime = service.trajanje;
         const slotTime = Math.abs(value);
         
-        // Time slot mora biti deljiv sa trajanjem usluge
-        return slotTime % serviceTime !== 0;
+        // Usluga mora biti deljiva sa time slotom
+        return serviceTime % slotTime !== 0;
       });
       
       if (incompatibleServices.length > 0) {
@@ -108,8 +107,8 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
       const serviceTime = service.trajanje;
       const slotTime = Math.abs(value);
       
-      // Time slot mora biti deljiv sa trajanjem usluge
-      return slotTime % serviceTime !== 0;
+      // Usluga mora biti deljiva sa time slotom
+      return serviceTime % slotTime !== 0;
     });
   };
 
