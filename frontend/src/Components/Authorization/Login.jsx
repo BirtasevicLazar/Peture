@@ -56,7 +56,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-3xl font-normal text-gray-900 mb-2">
             Dobrodošli nazad
           </h2>
           <p className="text-sm text-gray-600 mb-6">
@@ -71,7 +71,7 @@ const Login = () => {
             <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
-            <p className="text-red-700 font-medium">
+            <p className="text-red-700 font-normal">
               {error} {timer > 0 ? `${timer} sekundi` : ''}
             </p>
           </div>
@@ -80,7 +80,7 @@ const Login = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-normal text-gray-700">
                 Email adresa
               </label>
               <input
@@ -95,7 +95,7 @@ const Login = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-normal text-gray-700">
                 Lozinka
               </label>
               <input
@@ -114,7 +114,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={timer > 0}
-              className={`w-full py-3 px-4 rounded-lg text-white text-sm font-semibold transition duration-150 
+              className={`w-full py-3 px-4 rounded-lg text-white text-sm font-normal transition duration-150 
                 ${timer > 0 
                   ? 'bg-gray-400 cursor-not-allowed' 
                   : 'bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600'
@@ -154,7 +154,7 @@ const Login = () => {
 
         <p className="text-center text-sm text-gray-600">
           Nemate nalog?{' '}
-          <Link to="/register" className="font-medium text-green-600 hover:text-green-500 transition duration-150">
+          <Link to="/register" className="font-normal text-green-600 hover:text-green-500 transition duration-150">
             Registrujte se
           </Link>
         </p>

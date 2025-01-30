@@ -18,6 +18,40 @@ const Dashboard = () => {
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [hasWorkers, setHasWorkers] = useState(true);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setIsLoading(false);
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.data.message === 'Authenticated') {
+          setIsLoading(false);
+        } else {
+          localStorage.removeItem('token');
+          navigate('/login', { replace: true });
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        localStorage.removeItem('token');
+        navigate('/login', { replace: true });
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   useEffect(() => {
     // Provera da li salon ima radnike
@@ -345,6 +379,17 @@ const Dashboard = () => {
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-green-100 border-t-green-500 rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-500">Učitavanje...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/50">

@@ -169,4 +169,17 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+    public function checkAuth()
+    {
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+            return response()->json(['message' => 'Authenticated', 'user' => $user]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+    }
 }

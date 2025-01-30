@@ -206,7 +206,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-3xl font-normal text-gray-900 mb-2">
             Registracija
           </h2>
           <p className="text-sm text-gray-600 mb-6">
@@ -231,7 +231,7 @@ const Register = () => {
           {step === 1 && (
             <div className="space-y-5 animate-fade-in">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="name" className="block text-sm font-normal text-gray-700">
                   Ime i prezime
                 </label>
                 <input
@@ -248,7 +248,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="block text-sm font-normal text-gray-700">
                   Email adresa
                 </label>
                 <input
@@ -269,7 +269,7 @@ const Register = () => {
           {step === 2 && (
             <div className="space-y-5 animate-fade-in">
               <div>
-                <label htmlFor="salon_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="salon_name" className="block text-sm font-normal text-gray-700">
                   Ime salona
                 </label>
                 <input
@@ -285,7 +285,7 @@ const Register = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="address" className="block text-sm font-normal text-gray-700">
                     Adresa
                   </label>
                   <input
@@ -300,7 +300,7 @@ const Register = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="city" className="block text-sm font-normal text-gray-700">
                     Grad
                   </label>
                   <input
@@ -316,7 +316,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="phone" className="block text-sm font-normal text-gray-700">
                   Broj telefona
                 </label>
                 <input
@@ -340,7 +340,7 @@ const Register = () => {
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                   <div>
-                    <p className="text-red-700 font-medium">{emailError}</p>
+                    <p className="text-red-700 font-normal">{emailError}</p>
                     <button
                       type="button"
                       onClick={() => setStep(1)}
@@ -353,7 +353,7 @@ const Register = () => {
               )}
               
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-normal text-gray-700">
                   Lozinka
                 </label>
                 <input
@@ -376,7 +376,7 @@ const Register = () => {
               </div>
 
               <div>
-                <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password_confirmation" className="block text-sm font-normal text-gray-700">
                   Potvrdite lozinku
                 </label>
                 <input
@@ -432,7 +432,7 @@ const Register = () => {
 
         <p className="text-center text-sm text-gray-600 mt-6">
           Već imate nalog?{' '}
-          <Link to="/login" className="font-medium text-green-600 hover:text-green-500 transition duration-150">
+          <Link to="/login" className="font-normal text-green-600 hover:text-green-500 transition duration-150">
             Prijavite se
           </Link>
         </p>
