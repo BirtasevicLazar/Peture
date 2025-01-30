@@ -1,47 +1,56 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchWorkerById, updateWorker } from '../../../api/workers';
+import { fetchServices } from '../../../api/services';
+import { toast } from 'react-hot-toast';
 
 const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
   const [timeSlot, setTimeSlot] = useState(initialTimeSlot);
   const [errors, setErrors] = useState({});
-  const [hasServices, setHasServices] = useState(false);
-  const [workerServices, setWorkerServices] = useState([]);
-  const [worker, setWorker] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingTimeSlot, setPendingTimeSlot] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingTimeSlot, setPendingTimeSlot] = useState(null);
 
-  useEffect(() => {
-    fetchWorkerServices();
-    fetchWorker();
-  }, [workerId]);
+  const queryClient = useQueryClient();
 
-  const fetchWorker = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers/${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setWorker(response.data);
-    } catch (error) {
-      console.error('Error fetching worker:', error);
+  // Query za fetch radnika
+  const { data: worker } = useQuery({
+    queryKey: ['worker', workerId],
+    queryFn: () => fetchWorkerById(workerId)
+  });
+
+  // Query za fetch usluga
+  const { data: workerServices = [] } = useQuery({
+    queryKey: ['services', workerId],
+    queryFn: () => fetchServices(workerId)
+  });
+
+  // Mutation za update radnika
+  const updateWorkerMutation = useMutation({
+    mutationFn: ({ workerId, formData }) => updateWorker({ workerId, formData }),
+    onSuccess: (data) => {
+      if (data && data.worker) {
+        setTimeSlot(pendingTimeSlot);
+        setErrors({});
+        setShowConfirmation(false);
+        setPendingTimeSlot(null);
+        queryClient.invalidateQueries(['worker', workerId]);
+        toast.success('Uspešno ste promenili vremenski interval');
+      }
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        setErrors({
+          time_slot: 'Došlo je do greške prilikom ažuriranja time slot-a'
+        });
+      }
+      toast.error('Greška pri ažuriranju vremenskog intervala');
     }
-  };
-
-  const fetchWorkerServices = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/services?worker_id=${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setWorkerServices(response.data);
-      setHasServices(response.data.length > 0);
-    } catch (error) {
-      console.error('Error fetching worker services:', error);
-    }
-  };
+  });
 
   const handleTimeSlotSelect = (value) => {
-    if (hasServices) {
+    if (workerServices.length > 0) {
       const incompatibleServices = workerServices.filter(service => {
         const serviceTime = service.trajanje;
         const slotTime = Math.abs(value);
@@ -65,62 +74,26 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
   };
 
   const handleConfirmTimeSlotChange = async () => {
-    setLoading(true);
-    try {
-      if (!worker || !pendingTimeSlot) return;
+    if (!worker || !pendingTimeSlot) return;
 
-      const formDataToSend = new FormData();
-      formDataToSend.append('ime', worker.ime);
-      formDataToSend.append('prezime', worker.prezime);
-      formDataToSend.append('email', worker.email);
-      formDataToSend.append('telefon', worker.telefon || '');
-      formDataToSend.append('time_slot', pendingTimeSlot);
-      formDataToSend.append('booking_window', worker.booking_window || 30);
-      formDataToSend.append('_method', 'PUT');
+    const formDataToSend = new FormData();
+    formDataToSend.append('ime', worker.ime);
+    formDataToSend.append('prezime', worker.prezime);
+    formDataToSend.append('email', worker.email);
+    formDataToSend.append('telefon', worker.telefon || '');
+    formDataToSend.append('time_slot', pendingTimeSlot);
+    formDataToSend.append('booking_window', worker.booking_window || 30);
+    formDataToSend.append('_method', 'PUT');
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/workers/${workerId}`,
-        formDataToSend,
-        { 
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json'
-          } 
-        }
-      );
-      
-      if (response.data && response.data.worker) {
-        setTimeSlot(pendingTimeSlot);
-        setErrors({});
-        setShowConfirmation(false);
-        setPendingTimeSlot(null);
-        
-        // Osvežavamo podatke o radniku
-        fetchWorker();
-      }
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        setErrors({
-          time_slot: 'Došlo je do greške prilikom ažuriranja time slot-a'
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
+    updateWorkerMutation.mutate({ workerId, formData: formDataToSend });
   };
 
   const isTimeSlotDisabled = (value) => {
-    if (!hasServices) return false;
+    if (!workerServices.length) return false;
     
-    // Proveravamo da li postoji neka usluga koja nije kompatibilna sa time slotom
     return workerServices.some(service => {
       const serviceTime = service.trajanje;
       const slotTime = Math.abs(value);
-      
-      // Usluga mora biti deljiva sa time slotom
       return serviceTime % slotTime !== 0;
     });
   };
@@ -281,7 +254,7 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
         </div>
 
         {/* Services Warning */}
-        {hasServices && (
+        {workerServices.length > 0 && (
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-100 flex-shrink-0 flex items-center justify-center">

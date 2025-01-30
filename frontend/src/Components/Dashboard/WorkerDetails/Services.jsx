@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchServices, createService, updateService, deleteService } from '../../../api/services';
+import { fetchWorkerById } from '../../../api/workers';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 
 const Services = ({ workerId }) => {
-  // State za usluge
-  const [services, setServices] = useState([]);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
-  const [worker, setWorker] = useState(null);
   const [serviceFormData, setServiceFormData] = useState({
     naziv: '',
     opis: '',
@@ -16,38 +16,76 @@ const Services = ({ workerId }) => {
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
-
-  // State za greške
   const [errors, setErrors] = useState({});
 
-  const fetchWorker = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers/${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setWorker(response.data);
+  const queryClient = useQueryClient();
+
+  // Query za fetch radnika
+  const { data: worker } = useQuery({
+    queryKey: ['worker', workerId],
+    queryFn: () => fetchWorkerById(workerId),
+    onSuccess: (data) => {
       setServiceFormData(prev => ({
         ...prev,
-        trajanje: response.data.time_slot.toString()
+        trajanje: data.time_slot.toString()
       }));
-    } catch (error) {
-      console.error('Error fetching worker:', error);
     }
-  };
+  });
 
-  const fetchServices = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/services?worker_id=${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setServices(response.data);
-    } catch (error) {
-      console.error('Error fetching services:', error);
+  // Query za fetch usluga
+  const { data: services = [] } = useQuery({
+    queryKey: ['services', workerId],
+    queryFn: () => fetchServices(workerId),
+    onError: () => {
+      toast.error('Greška pri učitavanju usluga');
     }
-  };
+  });
+
+  // Mutation za kreiranje/ažuriranje usluge
+  const serviceMutation = useMutation({
+    mutationFn: (data) => {
+      if (selectedService) {
+        return updateService({ serviceId: selectedService.id, serviceData: data });
+      }
+      return createService(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['services', workerId]);
+      setIsServiceModalOpen(false);
+      resetServiceForm();
+      toast.success(selectedService ? 'Usluga je uspešno izmenjena' : 'Usluga je uspešno dodata');
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else {
+        setErrors({ general: 'Došlo je do greške prilikom čuvanja usluge.' });
+      }
+      toast.error('Greška pri čuvanju usluge');
+    }
+  });
+
+  // Mutation za brisanje usluge
+  const deleteMutation = useMutation({
+    mutationFn: deleteService,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['services', workerId]);
+      setIsDeleteModalOpen(false);
+      setServiceToDelete(null);
+      toast.success('Usluga je uspešno obrisana');
+    },
+    onError: () => {
+      toast.error('Greška pri brisanju usluge');
+    }
+  });
 
   const handleServiceInputChange = (e) => {
     setServiceFormData({ ...serviceFormData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: null });
+    }
   };
 
   const resetServiceForm = () => {
@@ -92,50 +130,16 @@ const Services = ({ workerId }) => {
 
   const handleServiceSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        worker_id: workerId,
-        naziv: serviceFormData.naziv,
-        opis: serviceFormData.opis || '',
-        cena: parseFloat(serviceFormData.cena),
-        trajanje: parseInt(serviceFormData.trajanje)
-      };
+    
+    const payload = {
+      worker_id: workerId,
+      naziv: serviceFormData.naziv,
+      opis: serviceFormData.opis || '',
+      cena: parseFloat(serviceFormData.cena),
+      trajanje: parseInt(serviceFormData.trajanje)
+    };
 
-      let response;
-      if (selectedService) {
-        response = await axios.put(
-          `${import.meta.env.VITE_API_URL}/services/${selectedService.id}`, 
-          payload,
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-        );
-      } else {
-        response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/services`, 
-          payload,
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-        );
-      }
-
-      setIsServiceModalOpen(false);
-      await fetchServices();
-      resetServiceForm();
-    } catch (error) {
-      console.error('Error submitting service:', error.response?.data);
-      if (error.response?.data?.errors) {
-        const serverErrors = error.response.data.errors;
-        const formattedErrors = {};
-        Object.keys(serverErrors).forEach(key => {
-          formattedErrors[key] = Array.isArray(serverErrors[key]) 
-            ? serverErrors[key][0] 
-            : serverErrors[key];
-        });
-        setErrors(formattedErrors);
-      } else if (error.response?.data?.message) {
-        setErrors({ general: error.response.data.message });
-      } else {
-        setErrors({ general: 'Došlo je do greške prilikom čuvanja usluge.' });
-      }
-    }
+    serviceMutation.mutate(payload);
   };
 
   const handleDeleteClick = (service) => {
@@ -143,27 +147,9 @@ const Services = ({ workerId }) => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteService = async () => {
-    try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/services/${serviceToDelete.id}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      await fetchServices();
-      setIsDeleteModalOpen(false);
-      setServiceToDelete(null);
-    } catch (error) {
-      console.error('Error deleting service:', error);
-      alert('Došlo je do greške prilikom brisanja usluge.');
-    }
+  const handleDeleteService = () => {
+    deleteMutation.mutate(serviceToDelete.id);
   };
-
-  useEffect(() => {
-    if (workerId) {
-      fetchWorker();
-      fetchServices();
-    }
-  }, [workerId]);
 
   return (
     <div className="w-full pt-6">

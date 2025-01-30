@@ -1,47 +1,62 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchSalonData, updateSalonDetails } from '../../api/salon';
+import { toast } from 'react-hot-toast';
 
 const Salon = () => {
-  const [salonData, setSalonData] = useState({
-    salon_name: '',
-    address: '',
-    city: '',
-    phone: '',
-    email: '',
-    description: '',
-    salon_image: null
-  });
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [errors, setErrors] = useState({});
   const [editData, setEditData] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   const [copyButtonText, setCopyButtonText] = useState('Kopiraj link');
   const [isCopying, setIsCopying] = useState(false);
 
-  useEffect(() => {
-    fetchSalonData();
-  }, []);
+  const queryClient = useQueryClient();
 
-  const fetchSalonData = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.data.salon_image) {
-        response.data.salon_image = `${import.meta.env.VITE_API_URL}/storage/${response.data.salon_image}`;
-      }
-      setSalonData(response.data);
-    } catch (error) {
+  // Query za fetch podataka o salonu
+  const { data: salonData = {}, isLoading } = useQuery({
+    queryKey: ['salon'],
+    queryFn: fetchSalonData,
+    onError: (error) => {
+      toast.error('Greška pri učitavanju podataka o salonu');
       console.error('Error fetching salon data:', error);
     }
-  };
+  });
+
+  // Mutation za ažuriranje podataka o salonu
+  const updateSalonMutation = useMutation({
+    mutationFn: updateSalonDetails,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['salon'], data);
+      setIsDetailsModalOpen(false);
+      setIsImageModalOpen(false);
+      setErrors({});
+      if (editData.imagePreview) {
+        URL.revokeObjectURL(editData.imagePreview);
+      }
+      setEditData({});
+      toast.success('Podaci su uspešno sačuvani');
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else if (error.response?.data?.message) {
+        setErrors({ 
+          [isImageModalOpen ? 'salon_image' : 'general']: error.response.data.message 
+        });
+      } else {
+        setErrors({ 
+          [isImageModalOpen ? 'salon_image' : 'general']: 'Došlo je do greške prilikom čuvanja podataka' 
+        });
+      }
+      toast.error('Greška pri čuvanju podataka');
+    }
+  });
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'salon_image' && files?.[0]) {
-      // Provera veličine fajla (2MB = 2 * 1024 * 1024 bytes)
       if (files[0].size > 2 * 1024 * 1024) {
         setErrors({
           salon_image: 'Slika ne sme biti veća od 2MB'
@@ -49,7 +64,6 @@ const Salon = () => {
         return;
       }
       
-      // Provera tipa fajla
       if (!files[0].type.startsWith('image/')) {
         setErrors({
           salon_image: 'Molimo vas odaberite sliku (PNG, JPG, JPEG)'
@@ -92,113 +106,44 @@ const Salon = () => {
 
   const handleSubmit = async (e, type) => {
     e.preventDefault();
-    if (isSubmitting) return;
-    
-    setIsSubmitting(true);
-    setErrors({});
     
     const formData = new FormData();
     
-    try {
-      if (type === 'details') {
-        // Za detalje salona, šaljemo sve podatke
-        Object.keys(editData).forEach(key => {
-          if (key !== 'imagePreview') {
-            formData.append(key, editData[key]);
-          }
-        });
-      } else if (type === 'image') {
-        // Za sliku, šaljemo sve postojeće podatke plus novu sliku
-        formData.append('salon_name', salonData.salon_name || '');
-        formData.append('email', salonData.email || '');
-        formData.append('phone', salonData.phone || '');
-        formData.append('city', salonData.city || '');
-        formData.append('address', salonData.address || '');
-        formData.append('description', salonData.description || '');
-        
-        if (!editData.salon_image) {
-          setErrors({ salon_image: 'Molimo vas odaberite sliku' });
-          setIsSubmitting(false);
-          return;
+    if (type === 'details') {
+      Object.keys(editData).forEach(key => {
+        if (key !== 'imagePreview') {
+          formData.append(key, editData[key]);
         }
-        formData.append('salon_image', editData.salon_image);
+      });
+    } else if (type === 'image') {
+      formData.append('salon_name', salonData.salon_name || '');
+      formData.append('email', salonData.email || '');
+      formData.append('phone', salonData.phone || '');
+      formData.append('city', salonData.city || '');
+      formData.append('address', salonData.address || '');
+      formData.append('description', salonData.description || '');
+      
+      if (!editData.salon_image) {
+        setErrors({ salon_image: 'Molimo vas odaberite sliku' });
+        return;
       }
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/user/update`,
-        formData,
-        {
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-      if (!response.data?.user) {
-        throw new Error('Neočekivan format odgovora sa servera');
-      }
-
-      const updatedUser = response.data.user;
-      
-      if (updatedUser.salon_image) {
-        updatedUser.salon_image = `${import.meta.env.VITE_API_URL}/storage/${updatedUser.salon_image}`;
-      }
-      
-      setSalonData(updatedUser);
-      
-      if (type === 'details') {
-        setIsDetailsModalOpen(false);
-      } else {
-        setIsImageModalOpen(false);
-      }
-      
-      setErrors({});
-      
-      if (editData.imagePreview && type === 'image') {
-        URL.revokeObjectURL(editData.imagePreview);
-      }
-
-      setEditData({});
-      
-    } catch (error) {
-      console.error('Error updating salon:', error);
-      
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else if (error.response?.data?.message) {
-        setErrors({ 
-          [type === 'image' ? 'salon_image' : 'general']: error.response.data.message 
-        });
-      } else if (error.response?.status === 422) {
-        setErrors({ 
-          [type === 'image' ? 'salon_image' : 'general']: 'Proverite unete podatke i pokušajte ponovo' 
-        });
-      } else {
-        setErrors({ 
-          [type === 'image' ? 'salon_image' : 'general']: 'Došlo je do greške prilikom čuvanja podataka' 
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
+      formData.append('salon_image', editData.salon_image);
     }
+
+    updateSalonMutation.mutate(formData);
   };
 
   const handleCopyUrl = () => {
     const url = `${window.location.origin}/booking/${salonData.slug}`;
     
-    // Kreiranje privremenog input elementa
     const tempInput = document.createElement('input');
     tempInput.value = url;
     document.body.appendChild(tempInput);
     
     try {
-      // Selektovanje i kopiranje teksta
       tempInput.select();
       document.execCommand('copy');
       
-      // Animacija dugmeta
       setIsCopying(true);
       setCopyButtonText('Kopirano!');
       
@@ -211,10 +156,17 @@ const Salon = () => {
       setCopyButtonText('Greška pri kopiranju');
       setTimeout(() => setCopyButtonText('Kopiraj link'), 2000);
     } finally {
-      // Čišćenje privremenog elementa
       document.body.removeChild(tempInput);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchSchedules, createSchedule, updateSchedule } from '../../../api/schedules';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 
 const WorkSchedule = ({ workerId }) => {
-  // State za raspored
-  const [schedules, setSchedules] = useState([]);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
   const [scheduleFormData, setScheduleFormData] = useState({
@@ -15,9 +15,41 @@ const WorkSchedule = ({ workerId }) => {
     break_start: "13:00",
     break_end: "14:00"
   });
-
-  // State za greške
   const [errors, setErrors] = useState({});
+
+  const queryClient = useQueryClient();
+
+  // Query za fetch rasporeda
+  const { data: schedules = [] } = useQuery({
+    queryKey: ['schedules', workerId],
+    queryFn: () => fetchSchedules(workerId),
+    enabled: !!workerId
+  });
+
+  // Mutation za kreiranje/ažuriranje rasporeda
+  const scheduleMutation = useMutation({
+    mutationFn: (data) => {
+      const existingSchedule = schedules.find(s => s.day_of_week === data.day_of_week);
+      if (existingSchedule) {
+        return updateSchedule({ scheduleId: existingSchedule.id, scheduleData: data });
+      }
+      return createSchedule(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['schedules', workerId]);
+      setIsScheduleModalOpen(false);
+      resetForm();
+      toast.success('Raspored je uspešno sačuvan');
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        setErrors({ general: 'Došlo je do greške prilikom čuvanja rasporeda.' });
+      }
+      toast.error('Greška pri čuvanju rasporeda');
+    }
+  });
 
   const daysOfWeek = [
     { id: 1, name: 'Ponedeljak' },
@@ -28,28 +60,6 @@ const WorkSchedule = ({ workerId }) => {
     { id: 6, name: 'Subota' },
     { id: 0, name: 'Nedelja' }
   ];
-
-  // Reset schedules when workerId changes
-  useEffect(() => {
-    setSchedules([]);
-    if (workerId) {
-      fetchSchedules();
-    }
-  }, [workerId]);
-
-  const fetchSchedules = async () => {
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/work-schedules?worker_id=${workerId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.data && Array.isArray(response.data)) {
-        const workerSchedules = response.data.filter(schedule => schedule.worker_id === workerId);
-        setSchedules(workerSchedules);
-      }
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -92,7 +102,7 @@ const WorkSchedule = ({ workerId }) => {
   const handleOpenModal = (day = null) => {
     if (!workerId) return;
     
-    const existingSchedule = schedules.find(s => s.day_of_week === day?.id && s.worker_id === workerId);
+    const existingSchedule = schedules.find(s => s.day_of_week === day?.id);
     
     if (day && existingSchedule) {
       setSelectedDay(day);
@@ -118,44 +128,22 @@ const WorkSchedule = ({ workerId }) => {
     e.preventDefault();
     if (!workerId || !selectedDay) return;
 
-    try {
-      const payload = {
-        worker_id: workerId,
-        day_of_week: selectedDay.id,
-        is_working: scheduleFormData.is_working,
-        start_time: scheduleFormData.start_time,
-        end_time: scheduleFormData.end_time,
-        has_break: scheduleFormData.has_break,
-        break_start: scheduleFormData.has_break ? scheduleFormData.break_start : null,
-        break_end: scheduleFormData.has_break ? scheduleFormData.break_end : null
-      };
+    const payload = {
+      worker_id: workerId,
+      day_of_week: selectedDay.id,
+      is_working: scheduleFormData.is_working,
+      start_time: scheduleFormData.start_time,
+      end_time: scheduleFormData.end_time,
+      has_break: scheduleFormData.has_break,
+      break_start: scheduleFormData.has_break ? scheduleFormData.break_start : null,
+      break_end: scheduleFormData.has_break ? scheduleFormData.break_end : null
+    };
 
-      const existingSchedule = schedules.find(s => s.day_of_week === selectedDay.id && s.worker_id === workerId);
-
-      if (existingSchedule) {
-        await axios.put(`${import.meta.env.VITE_API_URL}/work-schedules/${existingSchedule.id}`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-      } else {
-        await axios.post(`${import.meta.env.VITE_API_URL}/work-schedules`, payload, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-      }
-      setIsScheduleModalOpen(false);
-      await fetchSchedules();
-      resetForm();
-    } catch (error) {
-      console.error('Error submitting schedule:', error.response?.data);
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        setErrors({ general: 'Došlo je do greške prilikom čuvanja rasporeda.' });
-      }
-    }
+    scheduleMutation.mutate(payload);
   };
 
   const getScheduleForDay = (dayId) => {
-    return schedules.find(s => s.day_of_week === dayId && s.worker_id === workerId);
+    return schedules.find(s => s.day_of_week === dayId);
   };
 
   return (

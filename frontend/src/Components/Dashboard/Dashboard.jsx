@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { checkAuth, checkWorkers } from '../../api/dashboard';
 import Workers from './Workers';
 import Salon from './Salon';
 import WorkerDetails from './WorkerDetails';
 import WorkerAppointments from './WorkerAppointments';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
   const [activeComponent, setActiveComponent] = useState('workers');
@@ -18,64 +21,38 @@ const Dashboard = () => {
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [hasWorkers, setHasWorkers] = useState(true);
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsLoading(false);
+  // Auth provera
+  const { isLoading: isAuthLoading, isError: isAuthError } = useQuery({
+    queryKey: ['auth'],
+    queryFn: checkAuth,
+    retry: false,
+    onError: () => {
+      localStorage.removeItem('token');
       navigate('/login', { replace: true });
-      return;
     }
+  });
 
-    const checkAuth = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`, {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.data.message === 'Authenticated') {
-          setIsLoading(false);
-        } else {
-          localStorage.removeItem('token');
-          navigate('/login', { replace: true });
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        localStorage.removeItem('token');
-        navigate('/login', { replace: true });
+  // Provera radnika
+  const { data: workers = [] } = useQuery({
+    queryKey: ['workers'],
+    queryFn: checkWorkers,
+    enabled: !isAuthLoading && !isAuthError,
+    onSuccess: (data) => {
+      const hasExistingWorkers = data.length > 0;
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      if (!hasExistingWorkers && !hasSeenOnboarding) {
+        setShowOnboarding(true);
       }
-    };
+    },
+    onError: (error) => {
+      console.error('Error checking workers:', error);
+      toast.error('Greška pri učitavanju radnika');
+    }
+  });
 
-    checkAuth();
-  }, [navigate]);
-
+  // Prevent going back
   useEffect(() => {
-    // Provera da li salon ima radnike
-    const checkWorkers = async () => {
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        const hasExistingWorkers = response.data.length > 0;
-        setHasWorkers(hasExistingWorkers);
-        
-        // Prikaži onboarding samo ako nema radnika i nije ranije prikazan
-        const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
-        if (!hasExistingWorkers && !hasSeenOnboarding) {
-          setShowOnboarding(true);
-        }
-      } catch (error) {
-        console.error('Error checking workers:', error);
-      }
-    };
-
-    checkWorkers();
-
-    // Prevent going back
     window.history.pushState(null, '', window.location.href);
     window.onpopstate = function(event) {
       window.history.pushState(null, '', window.location.href);
@@ -380,7 +357,7 @@ const Dashboard = () => {
     );
   };
 
-  if (isLoading) {
+  if (isAuthLoading) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center">
         <div className="flex flex-col items-center">

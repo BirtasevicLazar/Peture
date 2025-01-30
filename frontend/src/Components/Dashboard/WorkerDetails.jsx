@@ -1,37 +1,29 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchWorkerById } from '../../api/workers';
 import WorkSchedule from './WorkerDetails/WorkSchedule';
 import Services from './WorkerDetails/Services';
 import TimeSlotSettings from './WorkerDetails/TimeSlotSettings';
 import WorkerSettings from './WorkerDetails/WorkerSettings';
+import { toast } from 'react-hot-toast';
 
 const WorkerDetails = ({ workerId }) => {
   const [activeTab, setActiveTab] = useState('schedule');
-  const [worker, setWorker] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchWorker = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers/${workerId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        setWorker(response.data);
-      } catch (error) {
-        setError('Došlo je do greške prilikom učitavanja podataka o radniku.');
-        console.error('Error fetching worker:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchWorker();
-  }, [workerId]);
+  // Query za fetch radnika
+  const { data: worker, isLoading, error } = useQuery({
+    queryKey: ['worker', workerId],
+    queryFn: () => fetchWorkerById(workerId),
+    onError: (error) => {
+      console.error('Error fetching worker:', error);
+      toast.error('Došlo je do greške prilikom učitavanja podataka o radniku.');
+    }
+  });
 
   const handleWorkerUpdate = (updatedWorker) => {
-    setWorker(updatedWorker);
+    // Ažuriramo keš sa novim podacima
+    queryClient.setQueryData(['worker', workerId], updatedWorker);
   };
 
   const tabs = [
@@ -79,7 +71,7 @@ const WorkerDetails = ({ workerId }) => {
     }
   ];
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full w-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
@@ -95,7 +87,7 @@ const WorkerDetails = ({ workerId }) => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h3 className="mt-2 text-sm text-gray-900">{error}</h3>
+          <h3 className="mt-2 text-sm text-gray-900">Došlo je do greške prilikom učitavanja podataka o radniku.</h3>
         </div>
       </div>
     );
@@ -103,7 +95,7 @@ const WorkerDetails = ({ workerId }) => {
 
   return (
     <div className="h-full flex flex-col w-full relative">
-      {/* Tabs - dodajemo sticky pozicioniranje */}
+      {/* Tabs */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
         <div className="flex items-center justify-center max-w-7xl mx-auto">
           {tabs.map((tab) => (
@@ -143,7 +135,7 @@ const WorkerDetails = ({ workerId }) => {
         </div>
       </div>
 
-      {/* Tab sadržaj - podešavamo overflow */}
+      {/* Tab sadržaj */}
       <div className="flex-1 overflow-y-auto bg-gray-50">
         <div className="min-h-[calc(100vh-8rem)] w-full pb-20 md:pb-0">
           {activeTab === 'schedule' && <WorkSchedule workerId={workerId} />}

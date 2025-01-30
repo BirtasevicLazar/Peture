@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchWorkers, createWorker } from '../../api/workers';
+import { toast } from 'react-hot-toast';
 
 const Workers = ({ onWorkerSelect }) => {
-  const [workers, setWorkers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -15,26 +16,35 @@ const Workers = ({ onWorkerSelect }) => {
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchWorkers = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/workers`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setWorkers(response.data);
-    } catch (error) {
+  const queryClient = useQueryClient();
+
+  // Query za fetch radnika
+  const { data: workers = [], isLoading } = useQuery({
+    queryKey: ['workers'],
+    queryFn: fetchWorkers,
+    onError: (error) => {
+      toast.error('Greška pri učitavanju radnika');
       console.error('Error fetching workers:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchWorkers();
-  }, []);
+  // Mutation za kreiranje radnika
+  const createWorkerMutation = useMutation({
+    mutationFn: createWorker,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['workers']);
+      setIsModalOpen(false);
+      resetForm();
+      toast.success('Radnik uspešno dodat');
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      }
+      toast.error('Greška pri dodavanju radnika');
+    }
+  });
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -77,7 +87,6 @@ const Workers = ({ onWorkerSelect }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
     const formDataToSend = new FormData();
     Object.keys(formData).forEach(key => {
@@ -86,23 +95,7 @@ const Workers = ({ onWorkerSelect }) => {
       }
     });
 
-    try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/workers`, formDataToSend, {
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      setIsModalOpen(false);
-      resetForm();
-      fetchWorkers();
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    createWorkerMutation.mutate(formDataToSend);
   };
 
   const nextStep = () => {
@@ -164,7 +157,7 @@ const Workers = ({ onWorkerSelect }) => {
             </button>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
             </div>
@@ -423,11 +416,10 @@ const Workers = ({ onWorkerSelect }) => {
                     {currentStep === 3 ? (
                       <button
                         type="submit"
-                        disabled={isSubmitting}
                         className="px-6 py-2 text-sm font-medium text-white bg-gray-900 
-                                 rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                 rounded-xl hover:bg-gray-800 transition-colors"
                       >
-                        {isSubmitting ? 'Dodavanje...' : 'Dodaj radnika'}
+                        Dodaj radnika
                       </button>
                     ) : (
                       <button

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateWorker, deleteWorker } from '../../../api/workers';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const WorkerSettings = ({ worker, onUpdate }) => {
 
   const [previewImage, setPreviewImage] = useState(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (worker) {
@@ -36,6 +38,59 @@ const WorkerSettings = ({ worker, onUpdate }) => {
       }
     }
   }, [worker]);
+
+  // Mutation za ažuriranje osnovnih podataka
+  const updateWorkerMutation = useMutation({
+    mutationFn: ({ workerId, formData }) => updateWorker({ workerId, formData }),
+    onSuccess: (data) => {
+      if (data && data.worker) {
+        onUpdate(data.worker);
+        setIsInfoModalOpen(false);
+        toast.success('Podaci su uspešno ažurirani');
+        queryClient.invalidateQueries(['worker', worker.id]);
+      }
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        toast.error('Došlo je do greške prilikom ažuriranja podataka');
+      }
+    }
+  });
+
+  // Mutation za ažuriranje slike
+  const updateImageMutation = useMutation({
+    mutationFn: ({ workerId, formData }) => updateWorker({ workerId, formData }),
+    onSuccess: (data) => {
+      if (data && data.worker) {
+        onUpdate(data.worker);
+        setIsImageModalOpen(false);
+        toast.success('Slika je uspešno ažurirana');
+        queryClient.invalidateQueries(['worker', worker.id]);
+      }
+    },
+    onError: (error) => {
+      if (error.response?.data?.errors) {
+        setErrors(error.response.data.errors);
+      } else {
+        toast.error('Došlo je do greške prilikom ažuriranja slike');
+      }
+    }
+  });
+
+  // Mutation za brisanje radnika
+  const deleteWorkerMutation = useMutation({
+    mutationFn: (workerId) => deleteWorker(workerId),
+    onSuccess: () => {
+      toast.success('Radnik je uspešno obrisan');
+      setShowDeleteConfirm(false);
+      navigate('/dashboard');
+    },
+    onError: () => {
+      toast.error('Došlo je do greške prilikom brisanja radnika');
+    }
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -65,107 +120,37 @@ const WorkerSettings = ({ worker, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({});
+    const formDataToSend = new FormData();
+    formDataToSend.append('ime', formData.ime);
+    formDataToSend.append('prezime', formData.prezime);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('telefon', formData.telefon || '');
+    formDataToSend.append('time_slot', worker.time_slot);
+    formDataToSend.append('booking_window', formData.booking_window);
+    formDataToSend.append('_method', 'PUT');
 
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('ime', formData.ime);
-      formDataToSend.append('prezime', formData.prezime);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('telefon', formData.telefon || '');
-      formDataToSend.append('time_slot', worker.time_slot);
-      formDataToSend.append('booking_window', formData.booking_window);
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/workers/${worker.id}?_method=PUT`,
-        formDataToSend,
-        { 
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json'
-          } 
-        }
-      );
-
-      if (response.data && response.data.worker) {
-        onUpdate(response.data.worker);
-        setIsInfoModalOpen(false);
-        toast.success('Podaci su uspešno ažurirani');
-      }
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        toast.error('Došlo je do greške prilikom ažuriranja podataka');
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateWorkerMutation.mutate({ 
+      workerId: worker.id, 
+      formData: formDataToSend 
+    });
   };
 
   const handleImageSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({});
-
-    try {
-      const formDataToSend = new FormData();
-      if (formData.profile_image) {
-        formDataToSend.append('profile_image', formData.profile_image);
-      }
-      formDataToSend.append('_method', 'PUT');
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/workers/${worker.id}`,
-        formDataToSend,
-        { 
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json'
-          } 
-        }
-      );
-
-      if (response.data && response.data.worker) {
-        onUpdate(response.data.worker);
-        setIsImageModalOpen(false);
-        toast.success('Slika je uspešno ažurirana');
-      }
-    } catch (error) {
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
-      } else {
-        toast.error('Došlo je do greške prilikom ažuriranja slike');
-      }
-    } finally {
-      setIsSubmitting(false);
+    const formDataToSend = new FormData();
+    if (formData.profile_image) {
+      formDataToSend.append('profile_image', formData.profile_image);
     }
+    formDataToSend.append('_method', 'PUT');
+
+    updateImageMutation.mutate({ 
+      workerId: worker.id, 
+      formData: formDataToSend 
+    });
   };
 
-  const handleDelete = async () => {
-    try {
-      setIsSubmitting(true);
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/workers/${worker.id}`,
-        {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Accept': 'application/json'
-          }
-        }
-      );
-      
-      toast.success('Radnik je uspešno obrisan');
-      setShowDeleteConfirm(false);
-      window.location.href = '/dashboard';
-    } catch (error) {
-      toast.error('Došlo je do greške prilikom brisanja radnika');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleDelete = () => {
+    deleteWorkerMutation.mutate(worker.id);
   };
 
   return (
