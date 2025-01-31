@@ -1,12 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { format, addDays, subDays, parseISO, isSameDay } from 'date-fns';
 import { sr } from 'date-fns/locale';
 
 const WorkerAppointments = ({ workerId }) => {
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -21,33 +19,26 @@ const WorkerAppointments = ({ workerId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createError, setCreateError] = useState(null);
 
-  // Učitaj podatke kada se promeni datum ili radnik
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/worker/${workerId}/appointments`,
-          {
-            params: {
-              date: format(selectedDate, 'yyyy-MM-dd')
-            },
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          }
-        );
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Došlo je do greške prilikom učitavanja podataka.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (workerId) {
-      fetchData();
-    }
-  }, [workerId, selectedDate]);
+  // Optimizovani API poziv koristeći React Query
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['appointments', workerId, format(selectedDate, 'yyyy-MM-dd')],
+    queryFn: async () => {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/worker/${workerId}/appointments`,
+        {
+          params: {
+            date: format(selectedDate, 'yyyy-MM-dd')
+          },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      return response.data;
+    },
+    enabled: !!workerId,
+    staleTime: 30000, // 30 sekundi
+    cacheTime: 300000, // 5 minuta
+    retry: 1
+  });
 
   // Generisanje vremenskih slotova na osnovu time_slot-a radnika
   const timeSlots = useMemo(() => {
@@ -243,7 +234,7 @@ const WorkerAppointments = ({ workerId }) => {
           <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
-          <p className="text-sm font-medium text-red-800">{error}</p>
+          <p className="text-sm font-medium text-red-800">{error.message}</p>
         </div>
       </div>
     );

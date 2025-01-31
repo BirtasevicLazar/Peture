@@ -19,14 +19,20 @@ const WorkSchedule = ({ workerId }) => {
 
   const queryClient = useQueryClient();
 
-  // Query za fetch rasporeda
+  // Optimizovani query za fetch rasporeda
   const { data: schedules = [] } = useQuery({
     queryKey: ['schedules', workerId],
     queryFn: () => fetchSchedules(workerId),
-    enabled: !!workerId
+    enabled: !!workerId,
+    staleTime: 30000, // 30 sekundi
+    cacheTime: 300000, // 5 minuta
+    retry: 1,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false
   });
 
-  // Mutation za kreiranje/ažuriranje rasporeda
+  // Optimizovana mutation za kreiranje/ažuriranje rasporeda
   const scheduleMutation = useMutation({
     mutationFn: (data) => {
       const existingSchedule = schedules.find(s => s.day_of_week === data.day_of_week);
