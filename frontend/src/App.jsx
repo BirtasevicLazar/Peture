@@ -20,13 +20,53 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <Toaster 
-        position="top-right"
+      <Toaster
+        position="top-center"
+        containerStyle={{
+          top: 5,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: '600px',
+          padding: '0 16px'
+        }}
+        gutter={8}
         toastOptions={{
-          duration: 4000,
+          duration: 1000,
           style: {
-            background: '#333',
+            background: '#18181B',
             color: '#fff',
+            borderRadius: '12px',
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: '500',
+            width: '100%',
+            maxWidth: '100%',
+            textAlign: 'center',
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+            '@media (min-width: 640px)': {
+              maxWidth: '400px',
+            },
+          },
+          success: {
+            iconTheme: {
+              primary: '#22C55E',
+              secondary: '#fff',
+            },
+            style: {
+              border: '1px solid rgba(34, 197, 94, 0.2)',
+              backgroundColor: '#18181B',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#EF4444',
+              secondary: '#fff',
+            },
+            style: {
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              backgroundColor: '#18181B',
+            },
           },
         }}
       />

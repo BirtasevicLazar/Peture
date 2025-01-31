@@ -85,7 +85,10 @@ const WorkerSettings = ({ worker, onUpdate }) => {
     onSuccess: () => {
       toast.success('Radnik je uspešno obrisan');
       setShowDeleteConfirm(false);
-      navigate('/dashboard');
+      queryClient.invalidateQueries(['workers']);
+      setTimeout(() => {
+        window.location.href = '/dashboard?tab=workers';
+      }, 10);
     },
     onError: () => {
       toast.error('Došlo je do greške prilikom brisanja radnika');
