@@ -69,12 +69,16 @@ const WorkerAppointments = ({ workerId }) => {
     if (!data?.worker?.time_slot || !data?.schedule) return [];
 
     const slots = [];
-    const timeSlot = data.worker.time_slot;
+    const timeSlot = Math.abs(data.worker.time_slot);
     const [startHour, startMinute] = data.schedule.start_time.split(':').map(Number);
     const [endHour, endMinute] = data.schedule.end_time.split(':').map(Number);
 
-    let currentHour = startHour;
+    // Zaokruži početno vreme na najbliži slot
     let currentMinute = startMinute;
+    if (startMinute % timeSlot !== 0) {
+      currentMinute = Math.floor(startMinute / timeSlot) * timeSlot;
+    }
+    let currentHour = startHour;
 
     while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
       slots.push(
@@ -91,6 +95,73 @@ const WorkerAppointments = ({ workerId }) => {
     return slots;
   }, [data?.worker?.time_slot, data?.schedule]);
 
+  // Nađi termin koji počinje u datom slotu ili se preklapa sa njim
+  const findAppointmentsInSlot = (timeSlot) => {
+    if (!data?.appointments?.length) return [];
+
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
+    const slotTime = slotHour * 60 + slotMinute;
+    const nextSlotTime = slotTime + Math.abs(data.worker.time_slot);
+
+    return data.appointments.filter(app => {
+      const [appStartHour, appStartMinute] = app.start_time.split(':').map(Number);
+      const [appEndHour, appEndMinute] = app.end_time.split(':').map(Number);
+      const appStartTime = appStartHour * 60 + appStartMinute;
+      const appEndTime = appEndHour * 60 + appEndMinute;
+
+      // Termin pripada ovom slotu ako počinje unutar njega
+      return appStartTime >= slotTime && appStartTime < nextSlotTime;
+    });
+  };
+
+  // Izračunaj visinu termina na osnovu trajanja
+  const calculateAppointmentHeight = (appointment) => {
+    if (!data?.worker?.time_slot) return 40;
+    
+    const currentTimeSlot = Math.abs(data.worker.time_slot);
+    const duration = appointment.service_duration;
+    const baseHeight = Math.abs(data.worker.time_slot) <= 10 ? 32 : 
+                      Math.abs(data.worker.time_slot) >= 60 ? 60 : 
+                      Math.abs(data.worker.time_slot) >= 30 ? 48 : 40;
+    
+    // Izračunaj visinu proporcionalno trajanju
+    const heightRatio = duration / currentTimeSlot;
+    return baseHeight * heightRatio;
+  };
+
+  // Izračunaj poziciju termina unutar slota
+  const calculateAppointmentPosition = (appointment, timeSlot) => {
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
+    const [appStartHour, appStartMinute] = appointment.start_time.split(':').map(Number);
+    
+    const slotTime = slotHour * 60 + slotMinute;
+    const appStartTime = appStartHour * 60 + appStartMinute;
+    const timeSlotDuration = Math.abs(data.worker.time_slot);
+    
+    // Izračunaj offset u minutima i pretvori u procenat
+    const offsetMinutes = appStartTime - slotTime;
+    const offsetPercentage = (offsetMinutes / timeSlotDuration) * 100;
+    
+    return Math.min(Math.max(0, offsetPercentage), 100);
+  };
+
+  // Proveri da li je slot zauzet terminom koji je počeo ranije
+  const isSlotOccupied = (timeSlot) => {
+    if (!data?.appointments?.length) return false;
+
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
+    const slotTime = slotHour * 60 + slotMinute;
+
+    return data.appointments.some(app => {
+      const [appStartHour, appStartMinute] = app.start_time.split(':').map(Number);
+      const [appEndHour, appEndMinute] = app.end_time.split(':').map(Number);
+      const appStartTime = appStartHour * 60 + appStartMinute;
+      const appEndTime = appEndHour * 60 + appEndMinute;
+      
+      return slotTime > appStartTime && slotTime < appEndTime;
+    });
+  };
+
   // Proveri da li je slot u pauzi
   const isBreakTime = (timeSlot) => {
     if (!data?.schedule?.has_break) return false;
@@ -106,42 +177,16 @@ const WorkerAppointments = ({ workerId }) => {
     return slotMinutes >= breakStartMinutes && slotMinutes < breakEndMinutes;
   };
 
-  // Nađi termin koji počinje u datom slotu
-  const findAppointment = (timeSlot) => {
-    return data?.appointments.find(app => app.start_time === timeSlot);
-  };
+  // Proveri da li je termin već prikazan u prethodnom slotu
+  const isAppointmentAlreadyShown = (appointment, timeSlot) => {
+    if (!appointment) return false;
 
-  // Izračunaj visinu termina na osnovu trajanja
-  const calculateAppointmentHeight = (appointment) => {
-    if (!data?.worker?.time_slot) return 40;
-    
-    const timeSlot = Math.abs(data.worker.time_slot);
-    const duration = appointment.service_duration;
-    const numberOfSlots = Math.ceil(duration / timeSlot);
-    
-    // Osnovna visina za jedan slot
-    let baseHeight = 40;
-    
-    // Prilagodi osnovnu visinu prema time slotu
-    if (timeSlot <= 10) {
-      baseHeight = 32;
-    } else if (timeSlot <= 15) {
-      baseHeight = 38;
-    } else if (timeSlot <= 20) {
-      baseHeight = 40;
-    } else if (timeSlot <= 30) {
-      baseHeight = 48;
-    } else {
-      baseHeight = 60;
-    }
-    
-    // Izračunaj ukupnu visinu
-    let totalHeight = baseHeight * numberOfSlots;
-    
-    // Oduzmi 1px za svaku granicu između redova
-    totalHeight = totalHeight - (numberOfSlots - 1);
-    
-    return totalHeight;
+    const [slotHour, slotMinute] = timeSlot.split(':').map(Number);
+    const [appStartHour, appStartMinute] = appointment.start_time.split(':').map(Number);
+    const slotTime = slotHour * 60 + slotMinute;
+    const appStartTime = appStartHour * 60 + appStartMinute;
+
+    return slotTime > appStartTime;
   };
 
   // Proveri da li je datum u prošlosti
@@ -174,9 +219,9 @@ const WorkerAppointments = ({ workerId }) => {
       return;
     }
 
-    const appointment = findAppointment(timeSlot);
-    if (appointment) {
-      setSelectedAppointment(appointment);
+    const appointments = findAppointmentsInSlot(timeSlot);
+    if (appointments.length > 0) {
+      setSelectedAppointment(appointments[0]);
     } else if (!isBreakTime(timeSlot) && data.schedule.is_working) {
       setSelectedSlot(timeSlot);
       setShowCreateModal(true);
@@ -373,7 +418,7 @@ const WorkerAppointments = ({ workerId }) => {
             <div className="overflow-x-auto">
               <div className="min-w-[300px]">
                 {timeSlots.map((timeSlot, index) => {
-                  const appointment = findAppointment(timeSlot);
+                  const appointments = findAppointmentsInSlot(timeSlot);
                   const isBreak = isBreakTime(timeSlot);
                   const isFullHour = timeSlot.endsWith(':00');
                   const isPast = isPastTimeSlot(timeSlot);
@@ -386,7 +431,7 @@ const WorkerAppointments = ({ workerId }) => {
                         ${isFullHour ? 'bg-gray-50/30' : ''}
                         ${!data.schedule.is_working ? 'opacity-50' : ''}
                         ${isPast ? 'bg-gray-50/50' : ''}
-                        ${!appointment && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
+                        ${!appointments.length && !isBreak && !isPast && data.schedule.is_working ? 'cursor-pointer hover:bg-green-50/30' : ''}
                         transition-colors duration-200
                       `}
                       style={{ 
@@ -408,8 +453,9 @@ const WorkerAppointments = ({ workerId }) => {
                           <div className="absolute inset-0 bg-gray-50/80 flex items-center justify-center">
                             <span className="text-xs text-gray-400">Pauza</span>
                           </div>
-                        ) : appointment && (
+                        ) : appointments.map((appointment, appIndex) => (
                           <div
+                            key={appointment.id || appIndex}
                             onClick={() => setSelectedAppointment(appointment)}
                             className={`
                               absolute left-0 right-0 mx-1.5 rounded-xl border overflow-hidden shadow-sm cursor-pointer
@@ -418,7 +464,7 @@ const WorkerAppointments = ({ workerId }) => {
                             `}
                             style={{
                               height: `${calculateAppointmentHeight(appointment)}px`,
-                              top: 0,
+                              top: `${calculateAppointmentPosition(appointment, timeSlot)}%`,
                               zIndex: 10,
                               transition: 'all 0.3s ease-in-out'
                             }}
@@ -447,7 +493,7 @@ const WorkerAppointments = ({ workerId }) => {
                               )}
                             </div>
                           </div>
-                        )}
+                        ))}
                       </div>
                     </div>
                   );
