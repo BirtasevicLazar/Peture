@@ -10,6 +10,7 @@ const WorkerAppointments = ({ workerId }) => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [tempTime, setTempTime] = useState({ hour: '', minute: '' });
   const [createFormData, setCreateFormData] = useState({
     customer_name: '',
     customer_phone: '',
@@ -215,7 +216,6 @@ const WorkerAppointments = ({ workerId }) => {
     const slotDateTime = new Date(`${format(selectedDate, 'yyyy-MM-dd')} ${timeSlot}`);
     
     if (slotDateTime < new Date()) {
-      toast.error('Nije moguće zakazati termin u prošlosti');
       return;
     }
 
@@ -240,6 +240,18 @@ const WorkerAppointments = ({ workerId }) => {
         toast.error('Nije moguće kreirati termin u prošlosti');
         setIsSubmitting(false);
         return;
+      }
+
+      // Provera deljivosti trajanja samo ako je termin kreiran klikom na slot
+      if (selectedSlot && !tempTime.hour && !createFormData.service_id) {
+        const duration = createFormData.duration;
+        const timeSlot = Math.abs(data.worker.time_slot);
+        
+        if (duration % timeSlot !== 0) {
+          setCreateError(`Trajanje termina mora biti deljivo sa ${timeSlot} minuta kada se termin kreira klikom na slot`);
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       const formData = {
@@ -277,6 +289,7 @@ const WorkerAppointments = ({ workerId }) => {
       queryClient.setQueryData(['worker-appointments', workerId, format(selectedDate, 'yyyy-MM-dd')], updatedResponse.data);
       setShowCreateModal(false);
       setSelectedSlot(null);
+      setTempTime({ hour: '', minute: '' });
       setCreateFormData({
         customer_name: '',
         customer_phone: '',
@@ -323,9 +336,9 @@ const WorkerAppointments = ({ workerId }) => {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden relative">
       {/* Navigacija po datumima */}
-      <div className="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden flex-shrink-0">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden flex-shrink-0">
         <div className="px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => setSelectedDate(prev => subDays(prev, 1))}
@@ -367,7 +380,7 @@ const WorkerAppointments = ({ workerId }) => {
       </div>
 
       {/* Grid sa terminima */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="flex-1 overflow-hidden relative">
         {data?.is_off_day ? (
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex flex-col items-center justify-center text-center">
@@ -414,9 +427,9 @@ const WorkerAppointments = ({ workerId }) => {
             </div>
           </div>
         ) : data?.schedule ? (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="min-w-[300px]">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-full relative">
+            <div className="overflow-y-auto overflow-x-auto h-full overscroll-none">
+              <div className="min-w-[300px] h-full pb-24">
                 {timeSlots.map((timeSlot, index) => {
                   const appointments = findAppointmentsInSlot(timeSlot);
                   const isBreak = isBreakTime(timeSlot);
@@ -500,6 +513,23 @@ const WorkerAppointments = ({ workerId }) => {
                 })}
               </div>
             </div>
+            
+            {/* Plus dugme fiksirano u odnosu na grid kontejner */}
+            <div className="absolute bottom-6 right-6 z-50">
+              <button
+                onClick={() => {
+                  setSelectedSlot(null);
+                  setTempTime({ hour: '', minute: '' });
+                  setShowCreateModal(true);
+                }}
+                className="w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                title="Zakaži novi termin"
+              >
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+            </div>
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
@@ -525,7 +555,8 @@ const WorkerAppointments = ({ workerId }) => {
                     Novi termin
                   </h3>
                   <p className="mt-1 text-sm text-gray-300">
-                    {format(selectedDate, "EEEE, d. MMMM yyyy.", { locale: sr })} u {selectedSlot}
+                    {format(selectedDate, "EEEE, d. MMMM yyyy.", { locale: sr })}
+                    {selectedSlot && ` u ${selectedSlot}`}
                   </p>
                 </div>
                 <button
@@ -547,6 +578,63 @@ const WorkerAppointments = ({ workerId }) => {
               )}
 
               <div className="space-y-4">
+                {/* Vreme početka - prikaži samo ako nije izabran slot */}
+                {!selectedSlot && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Vreme početka
+                      </label>
+                      <div className="flex gap-2">
+                        <select
+                          value={tempTime.hour}
+                          onChange={(e) => {
+                            setTempTime(prev => ({
+                              ...prev,
+                              hour: e.target.value
+                            }));
+                            // Postavi selectedSlot samo ako su oba polja popunjena
+                            if (e.target.value && tempTime.minute) {
+                              setSelectedSlot(`${e.target.value.padStart(2, '0')}:${tempTime.minute.padStart(2, '0')}`);
+                            }
+                          }}
+                          className="w-1/2 rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500"
+                          required
+                        >
+                          <option value="">Sat</option>
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <option key={i} value={i.toString().padStart(2, '0')}>
+                              {i.toString().padStart(2, '0')}
+                            </option>
+                          ))}
+                        </select>
+                        <select
+                          value={tempTime.minute}
+                          onChange={(e) => {
+                            setTempTime(prev => ({
+                              ...prev,
+                              minute: e.target.value
+                            }));
+                            // Postavi selectedSlot samo ako su oba polja popunjena
+                            if (tempTime.hour && e.target.value) {
+                              setSelectedSlot(`${tempTime.hour.padStart(2, '0')}:${e.target.value.padStart(2, '0')}`);
+                            }
+                          }}
+                          className="w-1/2 rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500"
+                          required
+                        >
+                          <option value="">Minut</option>
+                          {Array.from({ length: 60 }, (_, i) => (
+                            <option key={i} value={i.toString().padStart(2, '0')}>
+                              {i.toString().padStart(2, '0')}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label htmlFor="service" className="block text-sm font-medium text-gray-700">
                     Usluga (opciono)
@@ -582,16 +670,17 @@ const WorkerAppointments = ({ workerId }) => {
                     <input
                       type="number"
                       id="duration"
-                      min={data?.worker?.time_slot}
-                      step={data?.worker?.time_slot}
+                      min="1"
                       className="mt-1 block w-full border-gray-300 rounded-xl shadow-sm focus:ring-gray-500 focus:border-gray-500 sm:text-sm"
                       value={createFormData.duration}
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
                       required={!createFormData.service_id}
                     />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Trajanje mora biti deljivo sa {data?.worker?.time_slot} minuta
-                    </p>
+                    {selectedSlot && !tempTime.hour && (
+                      <p className="mt-1 text-sm text-gray-500">
+                        Trajanje mora biti deljivo sa {data?.worker?.time_slot} minuta
+                      </p>
+                    )}
                   </div>
                 )}
 

@@ -32,7 +32,7 @@ function App() {
         }}
         gutter={8}
         toastOptions={{
-          duration: 1000,
+          duration: 1500,
           className: 'sm:max-w-[400px] w-full',
           style: {
             background: '#18181B',

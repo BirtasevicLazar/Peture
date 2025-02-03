@@ -459,17 +459,6 @@ class AppointmentController extends Controller
             } else {
                 $duration = $validated['custom_service_duration'];
                 \Log::info('Using custom duration:', ['duration' => $duration]);
-                
-                // Proveri da li je trajanje deljivo sa time_slot-om radnika
-                if ($duration % $worker->time_slot !== 0) {
-                    \Log::warning('Invalid duration:', [
-                        'duration' => $duration,
-                        'time_slot' => $worker->time_slot
-                    ]);
-                    return response()->json([
-                        'message' => 'Trajanje termina mora biti deljivo sa vremenskim slotom radnika (' . $worker->time_slot . ' minuta)'
-                    ], 422);
-                }
             }
             
             $startTime = Carbon::parse($validated['start_time']);
