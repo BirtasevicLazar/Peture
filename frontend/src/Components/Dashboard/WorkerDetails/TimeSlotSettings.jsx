@@ -29,10 +29,6 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
     mutationFn: ({ workerId, formData }) => updateWorker({ workerId, formData }),
     onSuccess: (data) => {
       if (data && data.worker) {
-        setTimeSlot(pendingTimeSlot);
-        setErrors({});
-        setShowConfirmation(false);
-        setPendingTimeSlot(null);
         queryClient.invalidateQueries(['worker', workerId]);
         toast.success('Uspešno ste promenili vremenski interval');
       }
@@ -85,7 +81,14 @@ const TimeSlotSettings = ({ workerId, initialTimeSlot }) => {
     formDataToSend.append('booking_window', worker.booking_window || 30);
     formDataToSend.append('_method', 'PUT');
 
-    updateWorkerMutation.mutate({ workerId, formData: formDataToSend });
+    try {
+      await updateWorkerMutation.mutateAsync({ workerId, formData: formDataToSend });
+      setTimeSlot(pendingTimeSlot);
+      setShowConfirmation(false);
+      setPendingTimeSlot(null);
+    } catch (error) {
+      console.error('Error updating time slot:', error);
+    }
   };
 
   const isTimeSlotDisabled = (value) => {

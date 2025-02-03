@@ -63,8 +63,8 @@ const WorkerSettings = ({ worker, onUpdate }) => {
   const updateImageMutation = useMutation({
     mutationFn: ({ workerId, formData }) => updateWorker({ workerId, formData }),
     onSuccess: (data) => {
-      if (data && data.worker) {
-        onUpdate(data.worker);
+      if (data) {
+        onUpdate(data);
         setIsImageModalOpen(false);
         toast.success('Slika je uspešno ažurirana');
         queryClient.invalidateQueries(['worker', worker.id]);
@@ -76,6 +76,27 @@ const WorkerSettings = ({ worker, onUpdate }) => {
       } else {
         toast.error('Došlo je do greške prilikom ažuriranja slike');
       }
+    }
+  });
+
+  // Mutation za uklanjanje slike
+  const removeImageMutation = useMutation({
+    mutationFn: ({ workerId }) => {
+      const formData = new FormData();
+      formData.append('remove_image', '1');
+      return updateWorker({ workerId, formData });
+    },
+    onSuccess: (data) => {
+      if (data) {
+        onUpdate(data);
+        setPreviewImage(null);
+        setFormData(prev => ({ ...prev, profile_image: null }));
+        toast.success('Slika je uspešno uklonjena');
+        queryClient.invalidateQueries(['worker', worker.id]);
+      }
+    },
+    onError: () => {
+      toast.error('Došlo je do greške prilikom uklanjanja slike');
     }
   });
 
@@ -144,12 +165,17 @@ const WorkerSettings = ({ worker, onUpdate }) => {
     if (formData.profile_image) {
       formDataToSend.append('profile_image', formData.profile_image);
     }
-    formDataToSend.append('_method', 'PUT');
 
     updateImageMutation.mutate({ 
       workerId: worker.id, 
       formData: formDataToSend 
     });
+  };
+
+  const handleRemoveImage = () => {
+    const formData = new FormData();
+    formData.append('remove_image', '1');
+    removeImageMutation.mutate({ workerId: worker.id });
   };
 
   const handleDelete = () => {
@@ -377,6 +403,18 @@ const WorkerSettings = ({ worker, onUpdate }) => {
                   </div>
 
                   <div className="flex flex-col gap-3 pt-6 border-t">
+                    {worker.profile_image && !formData.profile_image && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        disabled={removeImageMutation.isLoading}
+                        className="w-full px-4 py-3 text-sm font-medium text-red-600 bg-red-50 
+                                 border border-red-100 rounded-xl hover:bg-red-100 transition-colors 
+                                 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {removeImageMutation.isLoading ? 'Uklanjanje...' : 'Ukloni trenutnu sliku'}
+                      </button>
+                    )}
                     <button
                       type="submit"
                       disabled={isSubmitting || !formData.profile_image}

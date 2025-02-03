@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Appointment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class WorkerController extends Controller
 {
@@ -70,36 +71,53 @@ class WorkerController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Worker $worker)
     {
-        $request->validate([
-            'ime' => 'required|string|max:255',
-            'prezime' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+        $validated = $request->validate([
+            'ime' => 'sometimes|required|string|max:255',
+            'prezime' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|email|unique:workers,email,' . $worker->id,
             'telefon' => 'nullable|string|max:255',
-            'time_slot' => 'nullable|integer',
-            'booking_window' => 'required|integer|min:1|max:90',
-            'profile_image' => 'nullable|image|max:2048'
+            'time_slot' => 'sometimes|required|integer',
+            'booking_window' => 'sometimes|required|integer',
+            'profile_image' => 'nullable|image|max:2048',
+            'remove_image' => 'nullable|boolean'
         ]);
 
-        $worker = Worker::findOrFail($id);
-        
-        $data = $request->only(['ime', 'prezime', 'email', 'telefon', 'time_slot', 'booking_window']);
-        
-        if ($request->hasFile('profile_image')) {
-            // Obriši staru sliku ako postoji
-            if ($worker->profile_image) {
-                Storage::disk('public')->delete($worker->profile_image);
+        try {
+            if ($request->hasFile('profile_image')) {
+                // Ako postoji stara slika, obriši je
+                if ($worker->profile_image) {
+                    Storage::disk('public')->delete($worker->profile_image);
+                }
+                
+                // Sačuvaj novu sliku
+                $path = $request->file('profile_image')->store('worker-images', 'public');
+                $validated['profile_image'] = $path;
+            } else if ($request->boolean('remove_image')) {
+                // Ako je zatraženo uklanjanje slike
+                if ($worker->profile_image) {
+                    Storage::disk('public')->delete($worker->profile_image);
+                }
+                $validated['profile_image'] = null;
             }
 
-            // Upload nove slike
-            $path = $request->file('profile_image')->store('worker-images', 'public');
-            $data['profile_image'] = $path;
+            $worker->update($validated);
+
+            return response()->json([
+                'message' => 'Radnik uspešno ažuriran',
+                'worker' => $worker
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error updating worker:', [
+                'error' => $e->getMessage(),
+                'worker_id' => $worker->id
+            ]);
+            
+            return response()->json([
+                'message' => 'Došlo je do greške prilikom ažuriranja radnika'
+            ], 500);
         }
-
-        $worker->update($data);
-
-        return response()->json(['worker' => $worker]);
     }
 
     public function destroy(Worker $worker)
