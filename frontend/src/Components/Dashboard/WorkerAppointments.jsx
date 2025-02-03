@@ -514,7 +514,7 @@ const WorkerAppointments = ({ workerId }) => {
               </div>
             </div>
             
-            {/* Plus dugme fiksirano u odnosu na grid kontejner */}
+            {/* Plus dugme sa naprednim efektima */}
             <div className="absolute bottom-6 right-6 z-50">
               <button
                 onClick={() => {
@@ -522,14 +522,41 @@ const WorkerAppointments = ({ workerId }) => {
                   setTempTime({ hour: '', minute: '' });
                   setShowCreateModal(true);
                 }}
-                className="w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                className="group w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center relative overflow-hidden"
                 title="Zakaži novi termin"
               >
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+                {/* Rotirajući zeleni border */}
+                <div className="absolute -inset-[3px]">
+                  <div className="w-full h-full rounded-full bg-[conic-gradient(from_0deg,#22C55E,#ffffff,#22C55E)] animate-spin-slow"></div>
+                </div>
+                
+                {/* Bela pozadina */}
+                <div className="absolute inset-[2.5px] bg-white rounded-full"></div>
+                
+                {/* Plus ikonica */}
+                <div className="relative z-10 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-90 transform">
+                  <svg className="w-6 h-6 text-[#22C55E] transition-all duration-300 group-hover:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
               </button>
             </div>
+
+            {/* Animacije */}
+            <style jsx>{`
+              @keyframes spin-slow {
+                from {
+                  transform: rotate(0deg);
+                }
+                to {
+                  transform: rotate(360deg);
+                }
+              }
+              
+              .animate-spin-slow {
+                animation: spin-slow 1s linear infinite;
+              }
+            `}</style>
           </div>
         ) : (
           <div className="bg-white rounded-2xl shadow-sm p-4 text-center text-sm text-gray-500">
