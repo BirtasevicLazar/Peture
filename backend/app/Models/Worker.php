@@ -39,4 +39,9 @@ class Worker extends Model
     {
         return $this->hasMany(WorkSchedule::class);
     }
+
+    public function offDays()
+    {
+        return $this->hasMany(WorkerOffDay::class);
+    }
 }

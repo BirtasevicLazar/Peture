@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { format, addDays, subDays, parseISO, isSameDay } from 'date-fns';
+import { format, addDays, subDays, parseISO, isSameDay, isWithinInterval } from 'date-fns';
 import { sr } from 'date-fns/locale';
+import { toast } from 'react-hot-toast';
 
 const WorkerAppointments = ({ workerId }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -18,11 +19,34 @@ const WorkerAppointments = ({ workerId }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createError, setCreateError] = useState(null);
+  const queryClient = useQueryClient();
 
-  // Optimizovani API poziv koristeći React Query
+  // Fetch worker off days
+  const { data: offDays } = useQuery({
+    queryKey: ['worker-off-days', workerId],
+    queryFn: () => fetchWorkerOffDays(workerId)
+  });
+
+  // Check if selected date is within any off day period
+  const getOffDay = (date) => {
+    if (!offDays?.length) return null;
+    
+    return offDays.find(offDay => {
+      const start = parseISO(offDay.start_date);
+      const end = parseISO(offDay.end_date);
+      return isWithinInterval(date, { start, end });
+    });
+  };
+
+  // Fetch appointments for selected date
   const { data, isLoading, error } = useQuery({
-    queryKey: ['appointments', workerId, format(selectedDate, 'yyyy-MM-dd')],
+    queryKey: ['worker-appointments', workerId, format(selectedDate, 'yyyy-MM-dd')],
     queryFn: async () => {
+      const offDay = getOffDay(selectedDate);
+      if (offDay) {
+        return { is_off_day: true, off_day: offDay };
+      }
+      
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/worker/${workerId}/appointments`,
         {
@@ -32,7 +56,7 @@ const WorkerAppointments = ({ workerId }) => {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
-      return response.data;
+      return { ...response.data, is_off_day: false };
     },
     enabled: !!workerId,
     staleTime: 30000, // 30 sekundi
@@ -129,10 +153,11 @@ const WorkerAppointments = ({ workerId }) => {
 
   // Proveri da li je vremenski slot prošao
   const isPastTimeSlot = (timeSlot) => {
-    if (!isSameDay(selectedDate, new Date())) return false;
     const now = new Date();
     const [hours, minutes] = timeSlot.split(':').map(Number);
-    return now.getHours() > hours || (now.getHours() === hours && now.getMinutes() > minutes);
+    const slotDateTime = new Date(selectedDate);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    return slotDateTime < now;
   };
 
   // Formatiranje broja telefona
@@ -142,26 +167,20 @@ const WorkerAppointments = ({ workerId }) => {
   };
 
   const handleSlotClick = (timeSlot) => {
-    if (!data?.schedule?.is_working) return;
+    const slotDateTime = new Date(`${format(selectedDate, 'yyyy-MM-dd')} ${timeSlot}`);
     
-    const appointment = findAppointment(timeSlot);
-    if (appointment) {
-      setSelectedAppointment(appointment);
+    if (slotDateTime < new Date()) {
+      toast.error('Nije moguće zakazati termin u prošlosti');
       return;
     }
 
-    if (isPastTimeSlot(timeSlot)) return;
-    if (isBreakTime(timeSlot)) return;
-
-    setSelectedSlot(timeSlot);
-    setShowCreateModal(true);
-    setCreateFormData({
-      customer_name: '',
-      customer_phone: '',
-      customer_email: '',
-      service_id: '',
-      duration: data?.worker?.time_slot || 30
-    });
+    const appointment = findAppointment(timeSlot);
+    if (appointment) {
+      setSelectedAppointment(appointment);
+    } else if (!isBreakTime(timeSlot) && data.schedule.is_working) {
+      setSelectedSlot(timeSlot);
+      setShowCreateModal(true);
+    }
   };
 
   const handleCreateSubmit = async (e) => {
@@ -170,6 +189,14 @@ const WorkerAppointments = ({ workerId }) => {
     setIsSubmitting(true);
 
     try {
+      const appointmentDateTime = new Date(`${format(selectedDate, 'yyyy-MM-dd')} ${selectedSlot}`);
+      
+      if (appointmentDateTime < new Date()) {
+        toast.error('Nije moguće kreirati termin u prošlosti');
+        setIsSubmitting(false);
+        return;
+      }
+
       const formData = {
         ...createFormData,
         worker_id: workerId,
@@ -202,7 +229,7 @@ const WorkerAppointments = ({ workerId }) => {
         }
       );
       
-      setData(updatedResponse.data);
+      queryClient.setQueryData(['worker-appointments', workerId, format(selectedDate, 'yyyy-MM-dd')], updatedResponse.data);
       setShowCreateModal(false);
       setSelectedSlot(null);
       setCreateFormData({
@@ -213,7 +240,7 @@ const WorkerAppointments = ({ workerId }) => {
         duration: data?.worker?.time_slot || 30
       });
     } catch (error) {
-      setCreateError(error.response?.data?.message || 'Došlo je do greške prilikom kreiranja termina');
+      toast.error(error.response?.data?.message || 'Došlo je do greške prilikom kreiranja termina');
     } finally {
       setIsSubmitting(false);
     }
@@ -270,9 +297,19 @@ const WorkerAppointments = ({ workerId }) => {
             </div>
             <div className="text-lg font-medium text-gray-900">
               {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
+              {getOffDay(selectedDate) && (
+                <span className="ml-2 text-sm font-normal text-red-500">
+                  (Neradan dan)
+                </span>
+              )}
+              {!data?.schedule?.is_working && !getOffDay(selectedDate) && (
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  (Ne radi)
+                </span>
+              )}
             </div>
           </div>
-          
+
           <button
             onClick={() => setSelectedDate(prev => addDays(prev, 1))}
             className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 active:scale-95"
@@ -286,7 +323,52 @@ const WorkerAppointments = ({ workerId }) => {
 
       {/* Grid sa terminima */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        {data?.schedule ? (
+        {data?.is_off_day ? (
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                Neradan dan
+              </h3>
+              {data.off_day?.reason && (
+                <p className="text-sm text-gray-600 max-w-md">
+                  {data.off_day.reason}
+                </p>
+              )}
+              <div className="mt-4 text-sm text-gray-500">
+                {format(parseISO(data.off_day?.start_date), "d. MMMM yyyy.", { locale: sr })}
+                {data.off_day?.start_date !== data.off_day?.end_date && (
+                  <>
+                    {' - '}
+                    {format(parseISO(data.off_day?.end_date), "d. MMMM yyyy.", { locale: sr })}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : !data?.schedule?.is_working ? (
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                Ne radi
+              </h3>
+              <p className="text-sm text-gray-600 max-w-md">
+                Radnik ne radi ovog dana prema rasporedu
+              </p>
+            </div>
+          </div>
+        ) : data?.schedule ? (
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <div className="min-w-[300px]">
@@ -332,7 +414,7 @@ const WorkerAppointments = ({ workerId }) => {
                             className={`
                               absolute left-0 right-0 mx-1.5 rounded-xl border overflow-hidden shadow-sm cursor-pointer
                               transition-all duration-300 hover:scale-[1.02] hover:shadow-md
-                              ${isPast ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
+                              ${isPastTimeSlot(appointment.start_time) ? 'bg-gray-50 border-gray-200' : 'bg-green-50 border-green-100 hover:bg-green-100/80'}
                             `}
                             style={{
                               height: `${calculateAppointmentHeight(appointment)}px`,
@@ -344,21 +426,21 @@ const WorkerAppointments = ({ workerId }) => {
                             <div className="px-2 h-full flex flex-col justify-center">
                               <div className="flex items-center justify-between gap-2 w-full">
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <div className={`text-xs leading-none font-medium truncate flex-shrink-0 ${isPast ? 'text-gray-600' : 'text-green-800'}`}>
+                                  <div className={`text-xs leading-none font-medium truncate flex-shrink-0 ${isPastTimeSlot(appointment.start_time) ? 'text-gray-600' : 'text-green-800'}`}>
                                     {appointment.service_name}
                                   </div>
                                   <div className="w-1 h-1 rounded-full bg-gray-200 flex-shrink-0"></div>
-                                  <div className={`text-xs leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-700'}`}>
+                                  <div className={`text-xs leading-none truncate ${isPastTimeSlot(appointment.start_time) ? 'text-gray-500' : 'text-green-700'}`}>
                                     {appointment.customer_name}
                                   </div>
                                 </div>
-                                <div className={`text-[11px] leading-none whitespace-nowrap flex-shrink-0 ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                <div className={`text-[11px] leading-none whitespace-nowrap flex-shrink-0 ${isPastTimeSlot(appointment.start_time) ? 'text-gray-500' : 'text-green-600'}`}>
                                   {appointment.start_time} - {appointment.end_time}
                                 </div>
                               </div>
                               {calculateAppointmentHeight(appointment) >= 48 && (
                                 <div className="mt-1 flex items-center gap-2">
-                                  <div className={`text-[11px] leading-none truncate ${isPast ? 'text-gray-500' : 'text-green-600'}`}>
+                                  <div className={`text-[11px] leading-none truncate ${isPastTimeSlot(appointment.start_time) ? 'text-gray-500' : 'text-green-600'}`}>
                                     {formatPhoneNumber(appointment.customer_phone)}
                                   </div>
                                 </div>

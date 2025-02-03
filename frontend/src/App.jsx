@@ -33,6 +33,7 @@ function App() {
         gutter={8}
         toastOptions={{
           duration: 1000,
+          className: 'sm:max-w-[400px] w-full',
           style: {
             background: '#18181B',
             color: '#fff',
@@ -44,9 +45,6 @@ function App() {
             maxWidth: '100%',
             textAlign: 'center',
             boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
-            '@media (min-width: 640px)': {
-              maxWidth: '400px',
-            },
           },
           success: {
             iconTheme: {

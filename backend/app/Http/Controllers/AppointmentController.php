@@ -117,6 +117,16 @@ class AppointmentController extends Controller
                 return response()->json([]);
             }
 
+            // Proveri da li je datum u neradnim danima
+            $isOffDay = $worker->offDays()
+                ->where('start_date', '<=', $date->format('Y-m-d'))
+                ->where('end_date', '>=', $date->format('Y-m-d'))
+                ->exists();
+
+            if ($isOffDay) {
+                return response()->json([]);
+            }
+
             $timeSlot = abs($worker->time_slot);
             $serviceDuration = $service->trajanje;
             
@@ -218,6 +228,18 @@ class AppointmentController extends Controller
             $startTime = Carbon::parse($validated['start_time']);
             $endTime = $startTime->copy()->addMinutes($service->trajanje);
             
+            // Proveri da li je datum u neradnim danima
+            $isOffDay = $worker->offDays()
+                ->where('start_date', '<=', $startTime->format('Y-m-d'))
+                ->where('end_date', '>=', $startTime->format('Y-m-d'))
+                ->exists();
+
+            if ($isOffDay) {
+                return response()->json([
+                    'message' => 'Izabrani datum je neradan dan'
+                ], 422);
+            }
+
             // Proveri da li je termin već zauzet za celo trajanje usluge
             $timeSlot = abs($worker->time_slot);
             $requiredSlots = ceil($service->trajanje / $timeSlot);
@@ -287,10 +309,43 @@ class AppointmentController extends Controller
     {
         try {
             // Dohvati radnika sa njegovim uslugama
-            $worker = Worker::with('services')->findOrFail($workerId);
+            $worker = Worker::with(['services', 'offDays'])->findOrFail($workerId);
             
             // Dohvati datum iz query parametra ili koristi današnji datum
             $date = $request->query('date') ? Carbon::parse($request->query('date')) : Carbon::today();
+            
+            // Proveri da li je datum neradan dan
+            $isOffDay = $worker->offDays()
+                ->where('start_date', '<=', $date->format('Y-m-d'))
+                ->where('end_date', '>=', $date->format('Y-m-d'))
+                ->exists();
+
+            if ($isOffDay) {
+                return response()->json([
+                    'worker' => [
+                        'id' => $worker->id,
+                        'ime' => $worker->ime,
+                        'prezime' => $worker->prezime,
+                        'time_slot' => abs($worker->time_slot),
+                        'services' => $worker->services->map(function($service) {
+                            return [
+                                'id' => $service->id,
+                                'naziv' => $service->naziv,
+                                'trajanje' => $service->trajanje,
+                                'cena' => $service->cena
+                            ];
+                        })
+                    ],
+                    'schedule' => null,
+                    'appointments' => [],
+                    'date' => $date->format('Y-m-d'),
+                    'is_off_day' => true,
+                    'off_day' => $worker->offDays()
+                        ->where('start_date', '<=', $date->format('Y-m-d'))
+                        ->where('end_date', '>=', $date->format('Y-m-d'))
+                        ->first()
+                ]);
+            }
             
             // Dohvati raspored za taj dan
             $schedule = WorkSchedule::where('worker_id', $workerId)
@@ -355,7 +410,8 @@ class AppointmentController extends Controller
                     'is_working' => $schedule->is_working
                 ] : null,
                 'appointments' => $appointments,
-                'date' => $date->format('Y-m-d')
+                'date' => $date->format('Y-m-d'),
+                'is_off_day' => false
             ]);
         } catch (\Exception $e) {
             \Log::error('Error fetching appointments:', [

@@ -8,6 +8,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\WorkScheduleController;
 use App\Http\Controllers\AppointmentController;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\WorkerOffDayController;
 
 // Public routes
 Route::post('/login', [AuthController::class, 'login']);
@@ -78,6 +79,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/work-schedules', [WorkScheduleController::class, 'store']);
     Route::put('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'update']);
     Route::delete('/work-schedules/{workSchedule}', [WorkScheduleController::class, 'destroy']);
+
+    // Worker Off Days routes
+    Route::get('/workers/{workerId}/off-days', [WorkerOffDayController::class, 'index']);
+    Route::post('/workers/{workerId}/off-days', [WorkerOffDayController::class, 'store']);
+    Route::delete('/workers/{workerId}/off-days/{offDayId}', [WorkerOffDayController::class, 'destroy']);
 
     // Appointments routes
     Route::get('/worker/{workerId}/appointments', [AppointmentController::class, 'getWorkerAppointments']);
