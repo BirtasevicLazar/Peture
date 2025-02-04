@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { checkAuth, checkWorkers } from '../../api/dashboard';
@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [hasWorkers, setHasWorkers] = useState(true);
+  const mainContentRef = useRef(null);
   const navigate = useNavigate();
 
   // Auth provera
@@ -94,15 +95,38 @@ const Dashboard = () => {
     { id: 'appointments', label: 'Termini', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', component: null },
   ];
 
-  const handleSubmenuClick = (itemId) => {
-    setActiveSubmenu(itemId);
-    setActiveComponent('worker-details'); // Add this new state to handle worker details view
+  // Функција за скроловање на врх
+  const scrollToTop = () => {
+    const contentElement = mainContentRef.current?.querySelector('.overflow-y-auto');
+    if (contentElement) {
+      contentElement.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
+  // Модификована функција за промену компоненте
+  const handleComponentChange = (component) => {
+    setActiveComponent(component);
+    setSelectedWorker(null);
+    setActiveSubmenu(null);
+    scrollToTop();
+  };
+
+  // Модификована функција за селекцију радника
   const handleWorkerSelect = (worker) => {
     setSelectedWorker(worker);
-    setActiveSubmenu('appointments'); // Postavljamo odmah na 'appointments'
+    setActiveSubmenu('appointments');
     setActiveComponent('worker-details');
+    scrollToTop();
+  };
+
+  // Модификована функција за промену подменија
+  const handleSubmenuClick = (itemId) => {
+    setActiveSubmenu(itemId);
+    setActiveComponent('worker-details');
+    scrollToTop();
   };
 
   const renderMainContent = () => {
@@ -369,9 +393,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="flex flex-col h-[100dvh] fixed inset-0 bg-gray-50/50">
       {/* Top Navigation Bar */}
-      <nav className="bg-white border-b border-gray-200 fixed w-full top-0 z-40 h-16">
+      <nav className="flex-none bg-white border-b border-gray-200 h-16 z-30">
         <div className="h-full px-4">
           <div className="flex justify-between h-full">
             <div className="flex items-center">
@@ -416,7 +440,7 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <div className="flex h-[100dvh] pt-16 pb-16 lg:pb-0">
+      <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar - hidden on mobile */}
         <div className="hidden lg:block w-72 bg-white border-r border-gray-200">
           <div className="flex flex-col h-full">
@@ -424,11 +448,7 @@ const Dashboard = () => {
               {menuItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => {
-                    setActiveComponent(item.id);
-                    setSelectedWorker(null);
-                    setActiveSubmenu(null);
-                  }}
+                  onClick={() => handleComponentChange(item.id)}
                   className={`${
                     activeComponent === item.id && !selectedWorker
                       ? 'bg-gray-100 text-gray-900'
@@ -505,54 +525,51 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-transparent">
-          <div className="h-full">
+        <main className="flex-1 relative" ref={mainContentRef}>
+          <div className="absolute inset-0 overflow-y-auto overflow-x-hidden will-change-scroll overscroll-none">
             {renderMainContent()}
           </div>
         </main>
+      </div>
 
-        {/* Mobile Bottom Navigation - hidden on desktop */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 h-16">
-          <div className="flex justify-evenly items-center h-full px-2">
-            {!selectedWorker ? (
-              menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveComponent(item.id);
-                    setSelectedWorker(null);
-                  }}
-                  className={`flex flex-col items-center justify-center w-full h-full
-                    ${activeComponent === item.id
-                      ? 'text-gray-900'
-                      : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                >
-                  <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-                  </svg>
-                  <span className="text-xs font-medium">{item.label}</span>
-                </button>
-              ))
-            ) : (
-              workerSubmenuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSubmenuClick(item.id)}
-                  className={`flex flex-col items-center justify-center w-full h-full
-                    ${activeSubmenu === item.id
-                      ? 'text-gray-900'
-                      : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                >
-                  <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
-                  </svg>
-                  <span className="text-xs font-medium">{item.label}</span>
-                </button>
-              ))
-            )}
-          </div>
+      {/* Mobile Bottom Navigation - hidden on desktop */}
+      <div className="lg:hidden flex-none bg-white border-t border-gray-200 h-16 z-30">
+        <div className="flex justify-evenly items-center h-full px-2">
+          {!selectedWorker ? (
+            menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleComponentChange(item.id)}
+                className={`flex flex-col items-center justify-center w-full h-full
+                  ${activeComponent === item.id
+                    ? 'text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900'
+                  }`}
+              >
+                <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+                </svg>
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ))
+          ) : (
+            workerSubmenuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleSubmenuClick(item.id)}
+                className={`flex flex-col items-center justify-center w-full h-full
+                  ${activeSubmenu === item.id
+                    ? 'text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900'
+                  }`}
+              >
+                <svg className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+                </svg>
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ))
+          )}
         </div>
       </div>
 

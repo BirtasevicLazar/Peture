@@ -162,14 +162,14 @@ const Salon = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-full bg-gray-50">
       {/* Hero Section */}
       <div className="relative w-full h-[40vh] md:h-[50vh] bg-gradient-to-br from-gray-900 to-gray-800">
         {salonData.salon_image ? (
